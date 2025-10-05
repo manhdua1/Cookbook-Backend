@@ -1,5 +1,6 @@
 package com.dao.cookbook.mapper;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.dao.cookbook.dto.request.UserRequestDTO;
@@ -8,6 +9,12 @@ import com.dao.cookbook.entity.UserEntity;
 
 @Component
 public class UserMapper {
+
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    public UserMapper() {
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
 
     public UserResponseDTO toResponse(UserEntity user) {
         UserResponseDTO dto = new UserResponseDTO();
@@ -26,7 +33,7 @@ public class UserMapper {
     public UserEntity toEntity(UserRequestDTO dto) {
         UserEntity user = new UserEntity();
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword()); // sẽ hash sau
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setFullName(dto.getFullName());
         user.setAvatarUrl(dto.getAvatarUrl());
         user.setBio(dto.getBio());
