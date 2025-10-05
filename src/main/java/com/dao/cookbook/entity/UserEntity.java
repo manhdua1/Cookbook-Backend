@@ -47,6 +47,7 @@ public class UserEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false)
     private String password; // Hashed password
 
     @Column(name = "full_name", nullable = false)
