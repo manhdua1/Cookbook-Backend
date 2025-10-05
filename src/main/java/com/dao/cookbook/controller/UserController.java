@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,7 +57,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(
             @Parameter(description = "Thông tin người dùng mới") 
-            @RequestBody UserRequestDTO dto) {
+            @Valid @RequestBody UserRequestDTO dto) {
         return ResponseEntity.ok(userService.createUser(dto));
     }
 
@@ -70,7 +71,7 @@ public class UserController {
             @Parameter(description = "ID người dùng cần cập nhật", example = "1") 
             @PathVariable Long id,
             @Parameter(description = "Thông tin người dùng cần cập nhật") 
-            @RequestBody UserRequestDTO dto) {
+            @Valid @RequestBody UserRequestDTO dto) {
         return ResponseEntity.ok(userService.updateUser(id, dto));
     }
 
