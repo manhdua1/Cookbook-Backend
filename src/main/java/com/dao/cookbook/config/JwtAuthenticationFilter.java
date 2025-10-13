@@ -4,8 +4,6 @@ import com.dao.cookbook.service.UserService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
@@ -31,17 +29,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String jwt = authHeader.substring(7);
             try {
+                // Lấy email từ JWT
                 String email = jwtUtil.extractUsername(jwt);
-                UserDetails userDetails = userService.authenticateUser(email, "");
-                // Tạo Authentication token nếu cần
-            } catch (Exception ignored) {}
+
+                // Validate token
+                if (jwtUtil.validateToken(jwt, email)) {
+
+                    // Load user details
+                    UserDetails userDetails = userService.loadUserByUsername(email);
+
+                    // Tạo Authentication và set vào SecurityContext
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails, null, userDetails.getAuthorities()
+                            );
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (Exception e) {
+                // Log lỗi nếu muốn
+                e.printStackTrace();
+            }
         }
 
         filterChain.doFilter(request, response);
     }
 }
-
-
