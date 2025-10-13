@@ -1,6 +1,9 @@
 package com.dao.cookbook.service;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dao.cookbook.dto.request.RegisterRequestDTO;
@@ -14,15 +17,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UserService {
+public class UserService implements org.springframework.security.core.userdetails.UserDetailsService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, UserMapper userMapper) {
+    public UserService(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Lấy tất cả user
@@ -101,5 +105,32 @@ public class UserService {
 
         // 5. Trả về response
         return userMapper.toResponse(saved);
+    }
+
+    public UserDetails authenticateUser(String email, String password) {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(password, userEntity.getPassword())) {
+            throw new RuntimeException("Invalid credentials");
+        }
+
+        return User.builder()
+                .username(userEntity.getEmail())
+                .password(userEntity.getPassword())
+                .roles("USER") // Default role
+                .build();
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getEmail())
+                .password(user.getPassword())
+                .roles("USER") // default role
+                .build();
     }
 }

@@ -19,3 +19,7 @@ spring:
           auth: true
           starttls:
             enable: true
+
+jwt:
+  secret: your_secret_key_your_secret_key_your_secret_key
+  expiration: 36000000 # 10 hours in milliseconds
