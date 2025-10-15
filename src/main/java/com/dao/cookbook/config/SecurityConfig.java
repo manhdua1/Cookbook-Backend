@@ -50,8 +50,17 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                // Auth endpoints - public
                 .requestMatchers("/api/auth/**").permitAll()
+                // Recipe endpoints - GET methods are public, others require authentication
+                .requestMatchers("/api/recipes").permitAll()
+                .requestMatchers("/api/recipes/{id}").permitAll()
+                .requestMatchers("/api/recipes/user/{userId}").permitAll()
+                .requestMatchers("/api/recipes/search").permitAll()
+                .requestMatchers("/api/recipes/my-recipes").authenticated()
+                // User endpoints - require authentication
                 .requestMatchers("/api/users/**").authenticated()
+                // All other requests require authentication
                 .anyRequest().authenticated()
             )
             // Thêm filter JWT trước BasicAuthenticationFilter
