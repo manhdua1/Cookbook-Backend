@@ -52,14 +52,14 @@ public class RecipeController {
      * Get all recipes.
      * GET /api/recipes
      */
-    @GetMapping
+    @GetMapping("/getRecipes")
     public ResponseEntity<List<RecipeResponseDTO>> getAllRecipes() {
         List<RecipeResponseDTO> recipes = recipeService.getAllRecipes();
         return ResponseEntity.ok(recipes);
     }
 
     /**
-     * Get recipe by ID.
+     * Get recipe by ID.getRecipes
      * GET /api/recipes/{id}
      */
     @GetMapping("/{id}")

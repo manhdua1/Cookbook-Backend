@@ -247,7 +247,7 @@ Base Path: /api/recipes
 
     Method: GET
 
-    Endpoint: /api/recipes
+    Endpoint: /api/recipes/getRecipes
 
     Mô tả: Trả về danh sách tất cả công thức nấu ăn trong hệ thống. (Public - không cần xác thực)
 
