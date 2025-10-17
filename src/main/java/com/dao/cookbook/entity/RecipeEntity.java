@@ -67,6 +67,12 @@ public class RecipeEntity {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecipeLikeEntity> likes = new ArrayList<>();
 
+    @Column(name = "bookmarks_count", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer bookmarksCount = 0;
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecipeBookmarkEntity> bookmarks = new ArrayList<>();
+
     @Column(name = "created_at", insertable = false, updatable = false, 
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp createdAt;

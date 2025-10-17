@@ -3,6 +3,7 @@ package com.dao.cookbook.controller;
 import com.dao.cookbook.dto.request.RecipeRequestDTO;
 import com.dao.cookbook.dto.response.RecipeResponseDTO;
 import com.dao.cookbook.dto.response.UserResponseDTO;
+import com.dao.cookbook.service.RecipeBookmarkService;
 import com.dao.cookbook.service.RecipeLikeService;
 import com.dao.cookbook.service.RecipeService;
 import com.dao.cookbook.service.UserService;
@@ -27,11 +28,13 @@ public class RecipeController {
     private final RecipeService recipeService;
     private final UserService userService;
     private final RecipeLikeService recipeLikeService;
+    private final RecipeBookmarkService recipeBookmarkService;
 
-    public RecipeController(RecipeService recipeService, UserService userService, RecipeLikeService recipeLikeService) {
+    public RecipeController(RecipeService recipeService, UserService userService, RecipeLikeService recipeLikeService, RecipeBookmarkService recipeBookmarkService) {
         this.recipeService = recipeService;
         this.userService = userService;
         this.recipeLikeService = recipeLikeService;
+        this.recipeBookmarkService = recipeBookmarkService;
     }
 
     /**
@@ -303,6 +306,126 @@ public class RecipeController {
             Long userId = getCurrentUserId();
             List<Long> likedRecipeIds = recipeLikeService.getLikedRecipeIds(userId);
             return ResponseEntity.ok(likedRecipeIds);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+    /**
+     * Bookmark a recipe.
+     * POST /api/recipes/{id}/bookmark
+     */
+    @PostMapping("/{id}/bookmark")
+    public ResponseEntity<Map<String, Object>> bookmarkRecipe(@PathVariable Long id) {
+        try {
+            Long userId = getCurrentUserId();
+            boolean success = recipeBookmarkService.bookmarkRecipe(userId, id);
+            
+            Map<String, Object> response = new HashMap<>();
+            if (success) {
+                response.put("message", "Đã lưu công thức");
+                response.put("bookmarked", true);
+                response.put("bookmarksCount", recipeBookmarkService.getBookmarksCount(id));
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "Bạn đã lưu công thức này rồi");
+                response.put("bookmarked", true);
+                response.put("bookmarksCount", recipeBookmarkService.getBookmarksCount(id));
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            }
+        } catch (RuntimeException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Lỗi: " + e.getMessage());
+            response.put("bookmarked", false);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    /**
+     * Remove bookmark from a recipe.
+     * DELETE /api/recipes/{id}/bookmark
+     */
+    @DeleteMapping("/{id}/bookmark")
+    public ResponseEntity<Map<String, Object>> unbookmarkRecipe(@PathVariable Long id) {
+        try {
+            Long userId = getCurrentUserId();
+            boolean success = recipeBookmarkService.unbookmarkRecipe(userId, id);
+            
+            Map<String, Object> response = new HashMap<>();
+            if (success) {
+                response.put("message", "Đã bỏ lưu công thức");
+                response.put("bookmarked", false);
+                response.put("bookmarksCount", recipeBookmarkService.getBookmarksCount(id));
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "Bạn chưa lưu công thức này");
+                response.put("bookmarked", false);
+                response.put("bookmarksCount", recipeBookmarkService.getBookmarksCount(id));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (RuntimeException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Lỗi: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    /**
+     * Toggle bookmark status.
+     * POST /api/recipes/{id}/toggle-bookmark
+     */
+    @PostMapping("/{id}/toggle-bookmark")
+    public ResponseEntity<Map<String, Object>> toggleBookmark(@PathVariable Long id) {
+        try {
+            Long userId = getCurrentUserId();
+            boolean isBookmarked = recipeBookmarkService.toggleBookmark(userId, id);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", isBookmarked ? "Đã lưu công thức" : "Đã bỏ lưu công thức");
+            response.put("bookmarked", isBookmarked);
+            response.put("bookmarksCount", recipeBookmarkService.getBookmarksCount(id));
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Lỗi: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    /**
+     * Check if current user has bookmarked a recipe.
+     * GET /api/recipes/{id}/is-bookmarked
+     */
+    @GetMapping("/{id}/is-bookmarked")
+    public ResponseEntity<Map<String, Object>> isBookmarked(@PathVariable Long id) {
+        try {
+            Long userId = getCurrentUserId();
+            boolean isBookmarked = recipeBookmarkService.isBookmarkedByUser(userId, id);
+            long bookmarksCount = recipeBookmarkService.getBookmarksCount(id);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("bookmarked", isBookmarked);
+            response.put("bookmarksCount", bookmarksCount);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            // If user is not authenticated, return false
+            Map<String, Object> response = new HashMap<>();
+            response.put("bookmarked", false);
+            response.put("bookmarksCount", recipeBookmarkService.getBookmarksCount(id));
+            return ResponseEntity.ok(response);
+        }
+    }
+
+    /**
+     * Get all recipes bookmarked by current user.
+     * GET /api/recipes/bookmarked
+     */
+    @GetMapping("/bookmarked")
+    public ResponseEntity<List<Long>> getBookmarkedRecipes() {
+        try {
+            Long userId = getCurrentUserId();
+            List<Long> bookmarkedRecipeIds = recipeBookmarkService.getBookmarkedRecipeIds(userId);
+            return ResponseEntity.ok(bookmarkedRecipeIds);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }

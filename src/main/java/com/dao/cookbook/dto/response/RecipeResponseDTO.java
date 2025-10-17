@@ -37,6 +37,10 @@ public class RecipeResponseDTO {
     
     private Boolean isLikedByCurrentUser;
     
+    private Integer bookmarksCount;
+    
+    private Boolean isBookmarkedByCurrentUser;
+    
     private Timestamp createdAt;
     
     private Timestamp updatedAt;

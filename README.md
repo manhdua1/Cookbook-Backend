@@ -739,6 +739,165 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
+### 3.14 Lưu công thức (Bookmark)
+
+    Method: POST
+
+    Endpoint: /api/recipes/{id}/bookmark
+
+    Mô tả: Lưu/Bookmark một công thức để xem sau. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        id (path variable, Long): ID của công thức cần lưu.
+
+    Response Body:
+
+```json
+{
+  "message": "Đã lưu công thức",
+  "bookmarked": true,
+  "bookmarksCount": 15
+}
+```
+
+    Responses:
+
+        200 OK: Lưu công thức thành công.
+
+        409 Conflict: Người dùng đã lưu công thức này rồi.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+        404 Not Found: Không tìm thấy công thức.
+
+### 3.15 Bỏ lưu công thức (Unbookmark)
+
+    Method: DELETE
+
+    Endpoint: /api/recipes/{id}/bookmark
+
+    Mô tả: Bỏ lưu một công thức đã bookmark. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        id (path variable, Long): ID của công thức cần bỏ lưu.
+
+    Response Body:
+
+```json
+{
+  "message": "Đã bỏ lưu công thức",
+  "bookmarked": false,
+  "bookmarksCount": 14
+}
+```
+
+    Responses:
+
+        200 OK: Bỏ lưu công thức thành công.
+
+        404 Not Found: Người dùng chưa lưu công thức này.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 3.16 Toggle Bookmark
+
+    Method: POST
+
+    Endpoint: /api/recipes/{id}/toggle-bookmark
+
+    Mô tả: Chuyển đổi trạng thái bookmark (nếu chưa lưu thì lưu, nếu đã lưu thì bỏ lưu). (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        id (path variable, Long): ID của công thức.
+
+    Response Body:
+
+```json
+{
+  "message": "Đã lưu công thức",
+  "bookmarked": true,
+  "bookmarksCount": 15
+}
+```
+
+    Responses:
+
+        200 OK: Toggle thành công, trả về trạng thái mới.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+        404 Not Found: Không tìm thấy công thức.
+
+### 3.17 Kiểm tra trạng thái Bookmark
+
+    Method: GET
+
+    Endpoint: /api/recipes/{id}/is-bookmarked
+
+    Mô tả: Kiểm tra xem người dùng hiện tại đã bookmark công thức này chưa.
+
+    Headers (Optional):
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        id (path variable, Long): ID của công thức cần kiểm tra.
+
+    Response Body:
+
+```json
+{
+  "bookmarked": true,
+  "bookmarksCount": 15
+}
+```
+
+    Responses:
+
+        200 OK: Trả về trạng thái bookmark (nếu chưa đăng nhập thì bookmarked luôn là false).
+
+        404 Not Found: Không tìm thấy công thức.
+
+### 3.18 Lấy danh sách công thức đã lưu
+
+    Method: GET
+
+    Endpoint: /api/recipes/bookmarked
+
+    Mô tả: Lấy danh sách ID của tất cả công thức mà người dùng hiện tại đã bookmark. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Response Body:
+
+```json
+[2, 8, 15, 23, 47]
+```
+
+    Responses:
+
+        200 OK: Trả về danh sách recipe IDs đã bookmark.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
 ## 4. Database Schema
 
 ### 4.1 Bảng recipes
@@ -750,6 +909,7 @@ Base Path: /api/recipes
     cooking_time: INT
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
     likes_count: INT DEFAULT 0
+    bookmarks_count: INT DEFAULT 0
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
@@ -784,6 +944,14 @@ Base Path: /api/recipes
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_like (user_id, recipe_id)
 
+### 4.6 Bảng recipe_bookmarks
+
+    id: BIGINT (Primary Key, Auto Increment)
+    user_id: BIGINT NOT NULL (Foreign Key -> users.id)
+    recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
+    created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    UNIQUE KEY: unique_user_recipe_bookmark (user_id, recipe_id)
+
 ## 5. Notes
 
 ### 5.1 Authentication
@@ -804,11 +972,11 @@ Base Path: /api/recipes
 
 ### 5.3 Cascade Delete
 
-    Khi xóa recipe, tất cả ingredients, steps, step_images và recipe_likes liên quan sẽ tự động bị xóa.
+    Khi xóa recipe, tất cả ingredients, steps, step_images, recipe_likes và recipe_bookmarks liên quan sẽ tự động bị xóa.
     
     Khi xóa step, tất cả step_images liên quan sẽ tự động bị xóa.
     
-    Khi xóa user, tất cả recipe_likes của user đó sẽ tự động bị xóa.
+    Khi xóa user, tất cả recipe_likes và recipe_bookmarks của user đó sẽ tự động bị xóa.
 
 ### 5.4 Data Relationships
 
@@ -816,11 +984,15 @@ Base Path: /api/recipes
     
     1 User có nhiều Recipe Likes (One-to-Many)
     
+    1 User có nhiều Recipe Bookmarks (One-to-Many)
+    
     1 Recipe có nhiều Ingredients (One-to-Many)
     
     1 Recipe có nhiều Steps (One-to-Many)
     
     1 Recipe có nhiều Likes (One-to-Many)
+    
+    1 Recipe có nhiều Bookmarks (One-to-Many)
     
     1 Step có nhiều Images (One-to-Many)
 
@@ -830,4 +1002,8 @@ Base Path: /api/recipes
     
     isLikedByCurrentUser: true nếu người dùng hiện tại đã like công thức, false nếu chưa like hoặc chưa đăng nhập.
     
-    Các endpoint public (không cần authentication) vẫn trả về thông tin like, nhưng isLikedByCurrentUser sẽ luôn là false.
+    bookmarksCount: Tổng số lượt bookmark/lưu của công thức.
+    
+    isBookmarkedByCurrentUser: true nếu người dùng hiện tại đã bookmark công thức, false nếu chưa bookmark hoặc chưa đăng nhập.
+    
+    Các endpoint public (không cần authentication) vẫn trả về thông tin like và bookmark, nhưng isLikedByCurrentUser và isBookmarkedByCurrentUser sẽ luôn là false.
