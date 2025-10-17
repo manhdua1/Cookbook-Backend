@@ -39,8 +39,15 @@ public class RecipeService {
      * Get all recipes.
      */
     public List<RecipeResponseDTO> getAllRecipes() {
+        return getAllRecipes(null);
+    }
+    
+    /**
+     * Get all recipes with like info for current user.
+     */
+    public List<RecipeResponseDTO> getAllRecipes(Long currentUserId) {
         return recipeRepository.findAll().stream()
-                .map(recipeMapper::toResponse)
+                .map(recipe -> recipeMapper.toResponse(recipe, currentUserId))
                 .collect(Collectors.toList());
     }
 
@@ -48,17 +55,31 @@ public class RecipeService {
      * Get recipe by ID.
      */
     public RecipeResponseDTO getRecipeById(Long id) {
+        return getRecipeById(id, null);
+    }
+    
+    /**
+     * Get recipe by ID with like info for current user.
+     */
+    public RecipeResponseDTO getRecipeById(Long id, Long currentUserId) {
         RecipeEntity recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy công thức với ID: " + id));
-        return recipeMapper.toResponse(recipe);
+        return recipeMapper.toResponse(recipe, currentUserId);
     }
 
     /**
      * Get all recipes by user ID.
      */
     public List<RecipeResponseDTO> getRecipesByUserId(Long userId) {
+        return getRecipesByUserId(userId, null);
+    }
+    
+    /**
+     * Get all recipes by user ID with like info for current user.
+     */
+    public List<RecipeResponseDTO> getRecipesByUserId(Long userId, Long currentUserId) {
         return recipeRepository.findByUserId(userId).stream()
-                .map(recipeMapper::toResponse)
+                .map(recipe -> recipeMapper.toResponse(recipe, currentUserId))
                 .collect(Collectors.toList());
     }
 
@@ -66,8 +87,15 @@ public class RecipeService {
      * Search recipes by title.
      */
     public List<RecipeResponseDTO> searchRecipesByTitle(String title) {
+        return searchRecipesByTitle(title, null);
+    }
+    
+    /**
+     * Search recipes by title with like info for current user.
+     */
+    public List<RecipeResponseDTO> searchRecipesByTitle(String title, Long currentUserId) {
         return recipeRepository.findByTitleContainingIgnoreCase(title).stream()
-                .map(recipeMapper::toResponse)
+                .map(recipe -> recipeMapper.toResponse(recipe, currentUserId))
                 .collect(Collectors.toList());
     }
 

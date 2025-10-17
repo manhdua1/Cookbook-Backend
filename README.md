@@ -580,6 +580,165 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức để xóa.
 
+### 3.9 Like công thức
+
+    Method: POST
+
+    Endpoint: /api/recipes/{id}/like
+
+    Mô tả: Like một công thức. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        id (path variable, Long): ID của công thức cần like.
+
+    Response Body:
+
+```json
+{
+  "message": "Đã thích công thức",
+  "liked": true,
+  "likesCount": 15
+}
+```
+
+    Responses:
+
+        200 OK: Like thành công.
+
+        409 Conflict: Người dùng đã like công thức này rồi.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+        404 Not Found: Không tìm thấy công thức.
+
+### 3.10 Unlike công thức
+
+    Method: DELETE
+
+    Endpoint: /api/recipes/{id}/like
+
+    Mô tả: Unlike một công thức đã like trước đó. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        id (path variable, Long): ID của công thức cần unlike.
+
+    Response Body:
+
+```json
+{
+  "message": "Đã bỏ thích công thức",
+  "liked": false,
+  "likesCount": 14
+}
+```
+
+    Responses:
+
+        200 OK: Unlike thành công.
+
+        404 Not Found: Người dùng chưa like công thức này.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 3.11 Toggle like công thức
+
+    Method: POST
+
+    Endpoint: /api/recipes/{id}/toggle-like
+
+    Mô tả: Tự động like/unlike công thức (nếu đã like thì unlike, nếu chưa like thì like). (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        id (path variable, Long): ID của công thức.
+
+    Response Body:
+
+```json
+{
+  "message": "Đã thích công thức",
+  "liked": true,
+  "likesCount": 15
+}
+```
+
+    Responses:
+
+        200 OK: Toggle thành công.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+        404 Not Found: Không tìm thấy công thức.
+
+### 3.12 Kiểm tra trạng thái like
+
+    Method: GET
+
+    Endpoint: /api/recipes/{id}/is-liked
+
+    Mô tả: Kiểm tra xem người dùng hiện tại đã like công thức này chưa. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        id (path variable, Long): ID của công thức cần kiểm tra.
+
+    Response Body:
+
+```json
+{
+  "recipeId": 1,
+  "isLiked": true
+}
+```
+
+    Responses:
+
+        200 OK: Trả về trạng thái like.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 3.13 Lấy danh sách công thức đã like
+
+    Method: GET
+
+    Endpoint: /api/recipes/liked
+
+    Mô tả: Lấy danh sách ID của tất cả công thức mà người dùng hiện tại đã like. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Response Body:
+
+```json
+[1, 5, 12, 28, 42]
+```
+
+    Responses:
+
+        200 OK: Trả về danh sách recipe IDs.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
 ## 4. Database Schema
 
 ### 4.1 Bảng recipes
@@ -590,6 +749,7 @@ Base Path: /api/recipes
     servings: INT NOT NULL
     cooking_time: INT
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
+    likes_count: INT DEFAULT 0
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
@@ -616,6 +776,14 @@ Base Path: /api/recipes
     image_url: VARCHAR(500) NOT NULL
     order_number: INT
 
+### 4.5 Bảng recipe_likes
+
+    id: BIGINT (Primary Key, Auto Increment)
+    user_id: BIGINT NOT NULL (Foreign Key -> users.id)
+    recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
+    created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    UNIQUE KEY: unique_user_recipe_like (user_id, recipe_id)
+
 ## 5. Notes
 
 ### 5.1 Authentication
@@ -636,16 +804,30 @@ Base Path: /api/recipes
 
 ### 5.3 Cascade Delete
 
-    Khi xóa recipe, tất cả ingredients, steps và step_images liên quan sẽ tự động bị xóa.
+    Khi xóa recipe, tất cả ingredients, steps, step_images và recipe_likes liên quan sẽ tự động bị xóa.
     
     Khi xóa step, tất cả step_images liên quan sẽ tự động bị xóa.
+    
+    Khi xóa user, tất cả recipe_likes của user đó sẽ tự động bị xóa.
 
 ### 5.4 Data Relationships
 
     1 User có nhiều Recipes (One-to-Many)
     
+    1 User có nhiều Recipe Likes (One-to-Many)
+    
     1 Recipe có nhiều Ingredients (One-to-Many)
     
     1 Recipe có nhiều Steps (One-to-Many)
     
+    1 Recipe có nhiều Likes (One-to-Many)
+    
     1 Step có nhiều Images (One-to-Many)
+
+### 5.5 Recipe Response Fields
+
+    likesCount: Tổng số lượt like của công thức.
+    
+    isLikedByCurrentUser: true nếu người dùng hiện tại đã like công thức, false nếu chưa like hoặc chưa đăng nhập.
+    
+    Các endpoint public (không cần authentication) vẫn trả về thông tin like, nhưng isLikedByCurrentUser sẽ luôn là false.

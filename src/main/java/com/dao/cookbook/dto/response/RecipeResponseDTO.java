@@ -33,6 +33,10 @@ public class RecipeResponseDTO {
     
     private List<RecipeStepDTO> steps = new ArrayList<>();
     
+    private Integer likesCount;
+    
+    private Boolean isLikedByCurrentUser;
+    
     private Timestamp createdAt;
     
     private Timestamp updatedAt;

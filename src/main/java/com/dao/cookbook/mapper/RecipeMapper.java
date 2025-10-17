@@ -9,6 +9,8 @@ import com.dao.cookbook.entity.IngredientEntity;
 import com.dao.cookbook.entity.RecipeEntity;
 import com.dao.cookbook.entity.RecipeStepEntity;
 import com.dao.cookbook.entity.StepImageEntity;
+import com.dao.cookbook.service.RecipeLikeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
@@ -18,6 +20,9 @@ import java.util.stream.Collectors;
  */
 @Component
 public class RecipeMapper {
+    
+    @Autowired
+    private RecipeLikeService recipeLikeService;
     
     /**
      * Convert RecipeRequestDTO to RecipeEntity.
@@ -36,6 +41,13 @@ public class RecipeMapper {
      * Convert RecipeEntity to RecipeResponseDTO.
      */
     public RecipeResponseDTO toResponse(RecipeEntity entity) {
+        return toResponse(entity, null);
+    }
+    
+    /**
+     * Convert RecipeEntity to RecipeResponseDTO with like info for a specific user.
+     */
+    public RecipeResponseDTO toResponse(RecipeEntity entity, Long currentUserId) {
         RecipeResponseDTO dto = new RecipeResponseDTO();
         dto.setId(entity.getId());
         dto.setTitle(entity.getTitle());
@@ -62,6 +74,14 @@ public class RecipeMapper {
             dto.setSteps(entity.getSteps().stream()
                 .map(this::stepToDTO)
                 .collect(Collectors.toList()));
+        }
+        
+        // Set like info
+        dto.setLikesCount(entity.getLikesCount() != null ? entity.getLikesCount() : 0);
+        if (currentUserId != null) {
+            dto.setIsLikedByCurrentUser(recipeLikeService.isLikedByUser(currentUserId, entity.getId()));
+        } else {
+            dto.setIsLikedByCurrentUser(false);
         }
         
         dto.setCreatedAt(entity.getCreatedAt());
