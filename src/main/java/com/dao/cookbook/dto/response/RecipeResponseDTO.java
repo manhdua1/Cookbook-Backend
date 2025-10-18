@@ -41,6 +41,14 @@ public class RecipeResponseDTO {
     
     private Boolean isBookmarkedByCurrentUser;
     
+    private Double averageRating;
+    
+    private Integer ratingsCount;
+    
+    private Integer userRating; // Current user's rating (1-5 or null)
+    
+    private Integer commentsCount;
+    
     private Timestamp createdAt;
     
     private Timestamp updatedAt;

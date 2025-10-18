@@ -11,6 +11,7 @@ import com.dao.cookbook.entity.RecipeStepEntity;
 import com.dao.cookbook.entity.StepImageEntity;
 import com.dao.cookbook.service.RecipeBookmarkService;
 import com.dao.cookbook.service.RecipeLikeService;
+import com.dao.cookbook.service.RecipeRatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,9 @@ public class RecipeMapper {
     
     @Autowired
     private RecipeBookmarkService recipeBookmarkService;
+    
+    @Autowired
+    private RecipeRatingService recipeRatingService;
     
     /**
      * Convert RecipeRequestDTO to RecipeEntity.
@@ -95,6 +99,17 @@ public class RecipeMapper {
         } else {
             dto.setIsBookmarkedByCurrentUser(false);
         }
+        
+        // Set rating info
+        dto.setAverageRating(entity.getAverageRating() != null ? entity.getAverageRating() : 0.0);
+        dto.setRatingsCount(entity.getRatingsCount() != null ? entity.getRatingsCount() : 0);
+        if (currentUserId != null) {
+            recipeRatingService.getUserRating(currentUserId, entity.getId())
+                    .ifPresent(rating -> dto.setUserRating(rating.getRating()));
+        }
+        
+        // Set comments count
+        dto.setCommentsCount(entity.getCommentsCount() != null ? entity.getCommentsCount() : 0);
         
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());

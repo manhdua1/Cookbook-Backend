@@ -73,6 +73,21 @@ public class RecipeEntity {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecipeBookmarkEntity> bookmarks = new ArrayList<>();
 
+    @Column(name = "average_rating", columnDefinition = "DECIMAL(3,2) DEFAULT 0.00")
+    private Double averageRating = 0.0;
+
+    @Column(name = "ratings_count", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer ratingsCount = 0;
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecipeRatingEntity> ratings = new ArrayList<>();
+
+    @Column(name = "comments_count", nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer commentsCount = 0;
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecipeCommentEntity> comments = new ArrayList<>();
+
     @Column(name = "created_at", insertable = false, updatable = false, 
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp createdAt;

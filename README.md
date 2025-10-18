@@ -898,6 +898,338 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
+### 3.19 Thêm bình luận cho công thức
+
+    Method: POST
+
+    Endpoint: /api/recipes/{recipeId}/comments
+
+    Mô tả: Thêm bình luận hoặc trả lời bình luận cho một công thức. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        recipeId (path variable, Long): ID của công thức.
+
+    Request Body:
+
+```json
+{
+  "comment": "Công thức rất ngon và dễ làm!",
+  "parentCommentId": null
+}
+```
+
+    Responses:
+
+        201 Created: Thêm bình luận thành công.
+
+        400 Bad Request: Dữ liệu không hợp lệ.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 3.20 Lấy danh sách bình luận
+
+    Method: GET
+
+    Endpoint: /api/recipes/{recipeId}/comments
+
+    Mô tả: Lấy tất cả bình luận cho một công thức (bao gồm cả replies).
+
+    Parameters:
+
+        recipeId (path variable, Long): ID của công thức.
+
+    Response Body:
+
+```json
+[
+  {
+    "id": 1,
+    "userId": 5,
+    "userName": "Nguyễn Văn A",
+    "userAvatar": "https://example.com/avatar.jpg",
+    "recipeId": 10,
+    "comment": "Công thức rất tuyệt vời!",
+    "parentCommentId": null,
+    "replies": [
+      {
+        "id": 2,
+        "userId": 8,
+        "userName": "Trần Thị B",
+        "comment": "Tôi đồng ý!",
+        "parentCommentId": 1,
+        "replies": []
+      }
+    ],
+    "createdAt": "2024-01-20T10:30:00",
+    "updatedAt": "2024-01-20T10:30:00"
+  }
+]
+```
+
+    Responses:
+
+        200 OK: Trả về danh sách bình luận.
+
+        404 Not Found: Không tìm thấy công thức.
+
+### 3.21 Cập nhật bình luận
+
+    Method: PUT
+
+    Endpoint: /api/recipes/{recipeId}/comments/{commentId}
+
+    Mô tả: Cập nhật nội dung bình luận của mình. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        recipeId (path variable, Long): ID của công thức.
+        commentId (path variable, Long): ID của bình luận cần sửa.
+
+    Request Body:
+
+```json
+{
+  "comment": "Nội dung đã được cập nhật"
+}
+```
+
+    Responses:
+
+        200 OK: Cập nhật thành công.
+
+        400 Bad Request: Dữ liệu không hợp lệ.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+        403 Forbidden: Không có quyền sửa bình luận này.
+
+### 3.22 Xóa bình luận
+
+    Method: DELETE
+
+    Endpoint: /api/recipes/{recipeId}/comments/{commentId}
+
+    Mô tả: Xóa bình luận của mình. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        recipeId (path variable, Long): ID của công thức.
+        commentId (path variable, Long): ID của bình luận cần xóa.
+
+    Responses:
+
+        200 OK: "Xóa bình luận thành công"
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+        403 Forbidden: Không có quyền xóa bình luận này.
+
+### 3.23 Đánh giá công thức
+
+    Method: POST
+
+    Endpoint: /api/recipes/{recipeId}/ratings
+
+    Mô tả: Đánh giá công thức (1-5 sao). Nếu đã đánh giá trước đó sẽ cập nhật đánh giá mới. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        recipeId (path variable, Long): ID của công thức.
+
+    Request Body:
+
+```json
+{
+  "rating": 5
+}
+```
+
+    Response Body:
+
+```json
+{
+  "rating": {
+    "id": 15,
+    "userId": 5,
+    "userName": "Nguyễn Văn A",
+    "userAvatar": "https://example.com/avatar.jpg",
+    "recipeId": 10,
+    "rating": 5,
+    "createdAt": "2024-01-20T10:30:00",
+    "updatedAt": "2024-01-20T10:30:00"
+  },
+  "averageRating": 4.5,
+  "ratingsCount": 25,
+  "message": "Đánh giá thành công"
+}
+```
+
+    Responses:
+
+        200 OK: Đánh giá thành công.
+
+        400 Bad Request: Dữ liệu không hợp lệ (rating phải từ 1-5).
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 3.24 Lấy đánh giá của tôi
+
+    Method: GET
+
+    Endpoint: /api/recipes/{recipeId}/ratings/my-rating
+
+    Mô tả: Lấy đánh giá của người dùng hiện tại cho công thức. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        recipeId (path variable, Long): ID của công thức.
+
+    Response Body:
+
+```json
+{
+  "id": 15,
+  "userId": 5,
+  "userName": "Nguyễn Văn A",
+  "recipeId": 10,
+  "rating": 5,
+  "createdAt": "2024-01-20T10:30:00",
+  "updatedAt": "2024-01-20T10:30:00"
+}
+```
+
+    Responses:
+
+        200 OK: Trả về đánh giá của người dùng.
+
+        404 Not Found: Người dùng chưa đánh giá công thức này.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 3.25 Xóa đánh giá
+
+    Method: DELETE
+
+    Endpoint: /api/recipes/{recipeId}/ratings
+
+    Mô tả: Xóa đánh giá của mình cho công thức. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        recipeId (path variable, Long): ID của công thức.
+
+    Responses:
+
+        200 OK: "Xóa đánh giá thành công"
+
+        400 Bad Request: Người dùng chưa đánh giá công thức này.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 3.26 Lấy thống kê đánh giá
+
+    Method: GET
+
+    Endpoint: /api/recipes/{recipeId}/ratings/stats
+
+    Mô tả: Lấy thống kê đánh giá của công thức (average rating, rating distribution).
+
+    Parameters:
+
+        recipeId (path variable, Long): ID của công thức.
+
+    Response Body:
+
+```json
+{
+  "averageRating": 4.5,
+  "ratingsCount": 100,
+  "ratingDistribution": {
+    "5": 60,
+    "4": 25,
+    "3": 10,
+    "2": 3,
+    "1": 2
+  }
+}
+```
+
+    Responses:
+
+        200 OK: Trả về thống kê đánh giá.
+
+        404 Not Found: Không tìm thấy công thức.
+
+### 3.27 Lấy tất cả đánh giá
+
+    Method: GET
+
+    Endpoint: /api/recipes/{recipeId}/ratings
+
+    Mô tả: Lấy danh sách tất cả đánh giá cho một công thức (bao gồm thông tin người dùng).
+
+    Parameters:
+
+        recipeId (path variable, Long): ID của công thức.
+
+    Response Body:
+
+```json
+[
+  {
+    "id": 15,
+    "userId": 5,
+    "userName": "Nguyễn Văn A",
+    "userAvatar": "https://example.com/avatar.jpg",
+    "recipeId": 10,
+    "rating": 5,
+    "createdAt": "2024-01-20T10:30:00",
+    "updatedAt": "2024-01-20T10:30:00"
+  },
+  {
+    "id": 16,
+    "userId": 8,
+    "userName": "Trần Thị B",
+    "userAvatar": "https://example.com/avatar2.jpg",
+    "recipeId": 10,
+    "rating": 4,
+    "createdAt": "2024-01-21T14:20:00",
+    "updatedAt": "2024-01-21T14:20:00"
+  }
+]
+```
+
+    Responses:
+
+        200 OK: Trả về danh sách đánh giá.
+
+        404 Not Found: Không tìm thấy công thức.
+
 ## 4. Database Schema
 
 ### 4.1 Bảng recipes
@@ -910,6 +1242,9 @@ Base Path: /api/recipes
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
     likes_count: INT DEFAULT 0
     bookmarks_count: INT DEFAULT 0
+    average_rating: DECIMAL(3,2) DEFAULT 0.00
+    ratings_count: INT DEFAULT 0
+    comments_count: INT DEFAULT 0
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
@@ -952,6 +1287,26 @@ Base Path: /api/recipes
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_bookmark (user_id, recipe_id)
 
+### 4.7 Bảng recipe_comments
+
+    id: BIGINT (Primary Key, Auto Increment)
+    user_id: BIGINT NOT NULL (Foreign Key -> users.id)
+    recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
+    comment: TEXT NOT NULL
+    parent_comment_id: BIGINT NULL (Foreign Key -> recipe_comments.id, for replies)
+    created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+### 4.8 Bảng recipe_ratings
+
+    id: BIGINT (Primary Key, Auto Increment)
+    user_id: BIGINT NOT NULL (Foreign Key -> users.id)
+    recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
+    rating: INT NOT NULL CHECK (rating >= 1 AND rating <= 5)
+    created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    UNIQUE KEY: unique_user_recipe_rating (user_id, recipe_id)
+
 ## 5. Notes
 
 ### 5.1 Authentication
@@ -972,11 +1327,13 @@ Base Path: /api/recipes
 
 ### 5.3 Cascade Delete
 
-    Khi xóa recipe, tất cả ingredients, steps, step_images, recipe_likes và recipe_bookmarks liên quan sẽ tự động bị xóa.
+    Khi xóa recipe, tất cả ingredients, steps, step_images, recipe_likes, recipe_bookmarks, recipe_comments và recipe_ratings liên quan sẽ tự động bị xóa.
     
     Khi xóa step, tất cả step_images liên quan sẽ tự động bị xóa.
     
-    Khi xóa user, tất cả recipe_likes và recipe_bookmarks của user đó sẽ tự động bị xóa.
+    Khi xóa user, tất cả recipe_likes, recipe_bookmarks, recipe_comments và recipe_ratings của user đó sẽ tự động bị xóa.
+    
+    Khi xóa comment, tất cả replies (comments con) sẽ tự động bị xóa (cascade delete).
 
 ### 5.4 Data Relationships
 
@@ -986,6 +1343,10 @@ Base Path: /api/recipes
     
     1 User có nhiều Recipe Bookmarks (One-to-Many)
     
+    1 User có nhiều Recipe Comments (One-to-Many)
+    
+    1 User có nhiều Recipe Ratings (One-to-Many)
+    
     1 Recipe có nhiều Ingredients (One-to-Many)
     
     1 Recipe có nhiều Steps (One-to-Many)
@@ -994,7 +1355,13 @@ Base Path: /api/recipes
     
     1 Recipe có nhiều Bookmarks (One-to-Many)
     
+    1 Recipe có nhiều Comments (One-to-Many)
+    
+    1 Recipe có nhiều Ratings (One-to-Many)
+    
     1 Step có nhiều Images (One-to-Many)
+    
+    1 Comment có nhiều Replies/Comments con (One-to-Many, self-referencing)
 
 ### 5.5 Recipe Response Fields
 
@@ -1006,4 +1373,34 @@ Base Path: /api/recipes
     
     isBookmarkedByCurrentUser: true nếu người dùng hiện tại đã bookmark công thức, false nếu chưa bookmark hoặc chưa đăng nhập.
     
-    Các endpoint public (không cần authentication) vẫn trả về thông tin like và bookmark, nhưng isLikedByCurrentUser và isBookmarkedByCurrentUser sẽ luôn là false.
+    averageRating: Đánh giá trung bình của công thức (0.00 - 5.00).
+    
+    ratingsCount: Tổng số lượt đánh giá.
+    
+    userRating: Đánh giá của người dùng hiện tại (1-5 hoặc null nếu chưa đánh giá hoặc chưa đăng nhập).
+    
+    commentsCount: Tổng số bình luận (không tính replies).
+    
+    Các endpoint public (không cần authentication) vẫn trả về thông tin like, bookmark và rating, nhưng isLikedByCurrentUser, isBookmarkedByCurrentUser và userRating sẽ luôn là false/null.
+
+### 5.6 Rating System
+
+    Rating phải từ 1 đến 5 sao.
+    
+    Mỗi người dùng chỉ có thể đánh giá một công thức một lần (unique constraint).
+    
+    Khi cập nhật rating, average_rating và ratings_count của recipe sẽ tự động được cập nhật.
+    
+    Rating distribution cho biết số lượng đánh giá cho mỗi mức sao (1-5).
+
+### 5.7 Comment System
+
+    Comments hỗ trợ nested replies (bình luận có thể trả lời bình luận khác).
+    
+    parentCommentId = null: Bình luận gốc (root comment).
+    
+    parentCommentId != null: Bình luận trả lời (reply).
+    
+    Khi xóa bình luận gốc, tất cả replies sẽ bị xóa theo (cascade delete).
+    
+    Chỉ người tạo bình luận mới có quyền sửa/xóa bình luận đó.
