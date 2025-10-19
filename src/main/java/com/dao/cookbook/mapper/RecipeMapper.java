@@ -151,7 +151,6 @@ public class RecipeMapper {
         entity.setRecipeId(recipeId);
         entity.setStepNumber(dto.getStepNumber());
         entity.setTitle(dto.getTitle());
-        entity.setDescription(dto.getDescription());
         return entity;
     }
     
@@ -163,7 +162,6 @@ public class RecipeMapper {
         dto.setId(entity.getId());
         dto.setStepNumber(entity.getStepNumber());
         dto.setTitle(entity.getTitle());
-        dto.setDescription(entity.getDescription());
         
         // Convert images
         if (entity.getImages() != null) {

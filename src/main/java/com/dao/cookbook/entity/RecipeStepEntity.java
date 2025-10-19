@@ -17,7 +17,6 @@ import java.util.List;
  *   <li><b>recipe</b>: The recipe this step belongs to.</li>
  *   <li><b>stepNumber</b>: Order/number of this step in the recipe (not null).</li>
  *   <li><b>title</b>: Title/name of this step (not null).</li>
- *   <li><b>description</b>: Detailed description of this step.</li>
  *   <li><b>images</b>: List of images associated with this step.</li>
  * </ul>
  */
@@ -41,11 +40,8 @@ public class RecipeStepEntity {
     @Column(name = "step_number", nullable = false)
     private Integer stepNumber;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String title;
-
-    @Column(columnDefinition = "TEXT")
-    private String description;
 
     @OneToMany(mappedBy = "recipeStep", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StepImageEntity> images = new ArrayList<>();

@@ -20,7 +20,5 @@ public class RecipeStepDTO {
     @NotBlank(message = "Tiêu đề bước không được để trống")
     private String title;
     
-    private String description;
-    
     private List<StepImageDTO> images = new ArrayList<>();
 }

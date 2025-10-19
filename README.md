@@ -284,7 +284,6 @@ Base Path: /api/recipes
                         "id": 1,
                         "stepNumber": 1,
                         "title": "Chuẩn bị nguyên liệu",
-                        "description": "Rửa sạch xương bò, thịt bò",
                         "images": [
                             {
                                 "id": 1,
@@ -297,7 +296,6 @@ Base Path: /api/recipes
                         "id": 2,
                         "stepNumber": 2,
                         "title": "Ninh nước dùng",
-                        "description": "Cho xương bò vào nồi nước sôi, ninh trong 3 tiếng",
                         "images": []
                     }
                 ],
@@ -463,13 +461,11 @@ Base Path: /api/recipes
             {
                 "stepNumber": 1,
                 "title": "Chuẩn bị",
-                "description": "Đập trứng, thái nhỏ hành lá",
                 "images": []
             },
             {
                 "stepNumber": 2,
                 "title": "Chiên",
-                "description": "Đun nóng chảo, cho trứng và cơm vào chiên",
                 "images": [
                     {
                         "imageUrl": "https://example.com/step2.jpg",
@@ -553,13 +549,11 @@ Base Path: /api/recipes
             {
                 "stepNumber": 1,
                 "title": "Chuẩn bị",
-                "description": "Đập trứng, thái nhỏ hành lá",
                 "images": []
             },
             {
                 "stepNumber": 2,
                 "title": "Chiên",
-                "description": "Đun nóng chảo, cho trứng và cơm vào chiên",
                 "images": [
                     {
                         "imageUrl": "https://example.com/step2.jpg",
@@ -1350,8 +1344,7 @@ Base Path: /api/recipes
     id: BIGINT (Primary Key, Auto Increment)
     recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
     step_number: INT NOT NULL
-    title: VARCHAR(255) NOT NULL
-    description: TEXT
+    title: TEXT NOT NULL
 
 ### 4.4 Bảng step_images
 
