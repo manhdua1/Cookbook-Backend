@@ -512,6 +512,95 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập hoặc token không hợp lệ.
 
+### 3.6.1 Tạo công thức với User ID (Admin)
+
+    Method: POST
+
+    Endpoint: /api/recipes/admin/create
+
+    Mô tả: Tạo một công thức nấu ăn mới cho một user cụ thể. API này cho phép admin tạo công thức thay mặt cho bất kỳ user nào.
+
+    Headers:
+
+        Content-Type: application/json
+
+    Request Body:
+
+    {
+        "userId": 5,
+        "title": "Cơm Chiên Trứng",
+        "imageUrl": "https://example.com/com-chien.jpg",
+        "servings": 2,
+        "cookingTime": 15,
+        "ingredients": [
+            {
+                "name": "Cơm nguội",
+                "quantity": "1",
+                "unit": "chén"
+            },
+            {
+                "name": "Trứng gà",
+                "quantity": "2",
+                "unit": "quả"
+            },
+            {
+                "name": "Hành lá",
+                "quantity": "2",
+                "unit": "cây"
+            }
+        ],
+        "steps": [
+            {
+                "stepNumber": 1,
+                "title": "Chuẩn bị",
+                "description": "Đập trứng, thái nhỏ hành lá",
+                "images": []
+            },
+            {
+                "stepNumber": 2,
+                "title": "Chiên",
+                "description": "Đun nóng chảo, cho trứng và cơm vào chiên",
+                "images": [
+                    {
+                        "imageUrl": "https://example.com/step2.jpg",
+                        "orderNumber": 1
+                    }
+                ]
+            }
+        ]
+    }
+
+    Validation Rules:
+
+        userId: Bắt buộc, phải > 0, user phải tồn tại trong hệ thống
+        title: Bắt buộc, không được để trống
+        servings: Bắt buộc, phải > 0
+        cookingTime: Tùy chọn, nếu có phải > 0
+        ingredients[].name: Bắt buộc cho mỗi nguyên liệu
+        steps[].stepNumber: Bắt buộc cho mỗi bước
+        steps[].title: Bắt buộc cho mỗi bước
+
+    Responses:
+
+        201 Created: Tạo công thức thành công, trả về thông tin công thức đã tạo.
+
+        {
+            "id": 3,
+            "title": "Cơm Chiên Trứng",
+            "imageUrl": "https://example.com/com-chien.jpg",
+            "servings": 2,
+            "cookingTime": 15,
+            "userId": 5,
+            "userName": "Nguyễn Văn B",
+            "userAvatar": "https://example.com/avatar.jpg",
+            "ingredients": [...],
+            "steps": [...],
+            "createdAt": "2025-10-15T11:00:00",
+            "updatedAt": "2025-10-15T11:00:00"
+        }
+
+        400 Bad Request: Dữ liệu đầu vào không hợp lệ (thiếu trường bắt buộc, giá trị không hợp lệ, user không tồn tại).
+
 ### 3.7 Cập nhật công thức
 
     Method: PUT

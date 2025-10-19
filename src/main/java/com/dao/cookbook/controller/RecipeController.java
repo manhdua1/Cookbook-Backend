@@ -1,5 +1,6 @@
 package com.dao.cookbook.controller;
 
+import com.dao.cookbook.dto.request.AdminRecipeRequestDTO;
 import com.dao.cookbook.dto.request.RecipeRequestDTO;
 import com.dao.cookbook.dto.response.RecipeResponseDTO;
 import com.dao.cookbook.dto.response.UserResponseDTO;
@@ -428,6 +429,32 @@ public class RecipeController {
             return ResponseEntity.ok(bookmarkedRecipeIds);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+    /**
+     * Create a new recipe as admin with specific userId.
+     * POST /api/recipes/admin/create
+     * This endpoint allows creating recipes on behalf of any user.
+     */
+    @PostMapping("/admin/create")
+    public ResponseEntity<?> createRecipeAsAdmin(@Valid @RequestBody AdminRecipeRequestDTO dto) {
+        try {
+            // Verify the user exists
+            userService.getUserById(dto.getUserId());
+            
+            // Create recipe for the specified user
+            RecipeResponseDTO recipe = recipeService.createRecipe(dto, dto.getUserId());
+            
+            // Reload with complete info
+            recipe = recipeService.getRecipeById(recipe.getId(), dto.getUserId());
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(recipe);
+        } catch (RuntimeException e) {
+            System.err.println("Error creating recipe as admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Lỗi tạo công thức: " + e.getMessage());
         }
     }
 }

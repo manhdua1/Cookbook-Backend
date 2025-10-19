@@ -1,5 +1,6 @@
 package com.dao.cookbook.service;
 
+import com.dao.cookbook.dto.request.AdminRecipeRequestDTO;
 import com.dao.cookbook.dto.request.RecipeRequestDTO;
 import com.dao.cookbook.dto.response.RecipeResponseDTO;
 import com.dao.cookbook.entity.*;
@@ -203,5 +204,24 @@ public class RecipeService {
         }
 
         recipeRepository.delete(recipe);
+    }
+
+    /**
+     * Create a new recipe with AdminRecipeRequestDTO.
+     * This method allows admins to create recipes for any user.
+     */
+    @Transactional
+    public RecipeResponseDTO createRecipe(AdminRecipeRequestDTO dto, Long userId) {
+        // Create RecipeRequestDTO from AdminRecipeRequestDTO
+        RecipeRequestDTO recipeDTO = new RecipeRequestDTO();
+        recipeDTO.setTitle(dto.getTitle());
+        recipeDTO.setImageUrl(dto.getImageUrl());
+        recipeDTO.setServings(dto.getServings());
+        recipeDTO.setCookingTime(dto.getCookingTime());
+        recipeDTO.setIngredients(dto.getIngredients());
+        recipeDTO.setSteps(dto.getSteps());
+        
+        // Use the existing createRecipe method
+        return createRecipe(recipeDTO, userId);
     }
 }
