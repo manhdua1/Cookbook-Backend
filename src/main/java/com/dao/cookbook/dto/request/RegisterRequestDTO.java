@@ -6,16 +6,19 @@ import lombok.Data;
 
 @Data
 public class RegisterRequestDTO {
-    @Email
-    @NotBlank
+    @NotBlank(message = "Họ tên không được để trống")
+    private String fullName;
+
+    @Email(message = "Email không hợp lệ")
+    @NotBlank(message = "Email không được để trống")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "Mật khẩu không được để trống")
     private String password;
 
-    @NotBlank
+    @NotBlank(message = "Xác nhận mật khẩu không được để trống")
     private String confirmPassword;
 
-    @NotBlank
+    @NotBlank(message = "OTP không được để trống")
     private String otp;
 }

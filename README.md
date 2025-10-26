@@ -192,11 +192,20 @@ Base Path: /api/auth
     Request Body:
 
     {
+        "fullName": "Nguyễn Văn A",
         "email": "register.test@example.com",
         "password": "StrongPassword!123",
-        "fullName": "New Register User",
+        "confirmPassword": "StrongPassword!123",
         "otp": "123456"
     }
+
+    Validation Rules:
+
+        fullName: Bắt buộc, không được để trống
+        email: Bắt buộc, phải đúng định dạng email
+        password: Bắt buộc, không được để trống
+        confirmPassword: Bắt buộc, phải khớp với password
+        otp: Bắt buộc, mã OTP đã được gửi đến email
 
     Responses:
 
@@ -210,7 +219,9 @@ Base Path: /api/auth
 
             Email đã tồn tại.
 
-            Dữ liệu không hợp lệ (password yếu, thiếu trường).
+            Mật khẩu xác nhận không khớp.
+
+            Dữ liệu không hợp lệ (thiếu trường bắt buộc).
 
 ### 2.3 Đăng nhập
 

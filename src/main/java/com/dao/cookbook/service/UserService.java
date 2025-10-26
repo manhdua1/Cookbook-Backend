@@ -93,9 +93,9 @@ public class UserService implements org.springframework.security.core.userdetail
         UserEntity user = new UserEntity();
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setFullName(dto.getFullName());
 
-        // Các field khác (nếu có mặc định)
-        user.setFullName("Người dùng mới");
+        // Các field khác (mặc định)
         user.setAvatarUrl(null);
         user.setBio(null);
         user.setHometown(null);

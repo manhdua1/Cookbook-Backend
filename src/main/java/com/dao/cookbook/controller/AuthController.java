@@ -57,6 +57,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestParam String username, @RequestParam String password) {
         try {
+            System.out.println("Login attempt - username/email: " + username);
+            
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
             );
@@ -64,8 +66,12 @@ public class AuthController {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String jwt = jwtUtil.generateToken(userDetails.getUsername());
 
+            System.out.println("Login successful for: " + username);
             return ResponseEntity.ok(jwt);
         } catch (Exception e) {
+            System.err.println("Login failed for username: " + username);
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Thông tin đăng nhập không hợp lệ");
         }
     }
