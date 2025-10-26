@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.dao.cookbook.dto.request.RegisterRequestDTO;
+import com.dao.cookbook.dto.request.UpdateProfileRequestDTO;
 import com.dao.cookbook.dto.request.UserRequestDTO;
 import com.dao.cookbook.dto.response.UserResponseDTO;
 import com.dao.cookbook.entity.UserEntity;
@@ -54,6 +55,21 @@ public class UserService implements org.springframework.security.core.userdetail
         UserEntity user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         userMapper.updateEntity(user, dto);
+        UserEntity updated = userRepository.save(user);
+        return userMapper.toResponse(updated);
+    }
+
+    // Cập nhật profile user (không update email/password)
+    public UserResponseDTO updateProfile(Long id, UpdateProfileRequestDTO dto) {
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        
+        // Chỉ cập nhật các thông tin profile
+        user.setFullName(dto.getFullName());
+        user.setAvatarUrl(dto.getAvatarUrl());
+        user.setBio(dto.getBio());
+        user.setHometown(dto.getHometown());
+        
         UserEntity updated = userRepository.save(user);
         return userMapper.toResponse(updated);
     }

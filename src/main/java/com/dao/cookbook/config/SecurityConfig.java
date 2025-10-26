@@ -52,6 +52,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Auth endpoints - public
                 .requestMatchers("/api/auth/**").permitAll()
+                // Upload endpoints - public (hoặc có thể set authenticated nếu muốn)
+                .requestMatchers("/api/upload/**").permitAll()
+                // Static files - public
+                .requestMatchers("/uploads/**").permitAll()
                 // Recipe endpoints - GET methods are public, others require authentication
                 .requestMatchers("/api/recipes").permitAll()
                 .requestMatchers("/api/recipes/{id}").permitAll()

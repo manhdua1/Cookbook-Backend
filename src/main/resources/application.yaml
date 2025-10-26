@@ -20,6 +20,20 @@ spring:
           starttls:
             enable: true
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 jwt:
   secret: your_secret_key_your_secret_key_your_secret_key
   expiration: 36000000 # 10 hours in milliseconds
+
+# File storage configuration
+file:
+  upload-dir: uploads
+
+# Application base URL (change in production)
+app:
+  base-url: http://localhost:8080

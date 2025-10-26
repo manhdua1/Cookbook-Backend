@@ -96,7 +96,7 @@ Base Path: /api/users
 
     Endpoint: /api/users/{id}
 
-    Mô tả: Cập nhật thông tin profile của người dùng (không bao gồm email/password).
+    Mô tả: Cập nhật thông tin profile của người dùng (fullName, avatarUrl, bio, hometown). KHÔNG thể thay đổi email/password.
 
     Parameters:
 
@@ -105,13 +105,31 @@ Base Path: /api/users
     Request Body:
 
     {
-        "fullName": "Le Van C Updated",
-        "avatar": "new_avatar_url.png"
+        "fullName": "Nguyễn Văn A Updated",
+        "avatarUrl": "https://example.com/new_avatar.jpg",
+        "bio": "Tôi yêu thích nấu ăn và khám phá món ăn mới",
+        "hometown": "Hà Nội"
     }
+
+    Validation Rules:
+
+        fullName: Bắt buộc, tối đa 100 ký tự
+        avatarUrl: Tùy chọn, tối đa 255 ký tự
+        bio: Tùy chọn, tối đa 500 ký tự
+        hometown: Tùy chọn, tối đa 100 ký tự
 
     Responses:
 
         200 OK: Cập nhật thành công, trả về thông tin người dùng sau khi cập nhật.
+
+        {
+            "id": 1,
+            "email": "user@example.com",
+            "fullName": "Nguyễn Văn A Updated",
+            "avatarUrl": "https://example.com/new_avatar.jpg",
+            "bio": "Tôi yêu thích nấu ăn và khám phá món ăn mới",
+            "hometown": "Hà Nội"
+        }
 
         404 Not Found: Không tìm thấy người dùng để cập nhật.
 
@@ -182,13 +200,136 @@ Base Path: /api/users
 
         404 Not Found: Không tìm thấy người dùng (email trong token không tồn tại).
 
-## 2. Authentication API
+## 2. File Upload API
+
+Endpoint quản lý việc upload và lưu trữ file/ảnh.
+
+Controller: FileUploadController
+Base Path: /api/upload
+
+### 2.1 Upload một ảnh
+
+    Method: POST
+
+    Endpoint: /api/upload/image
+
+    Mô tả: Upload một file ảnh lên server. File sẽ được lưu trong thư mục uploads/ và trả về URL để truy cập.
+
+    Content-Type: multipart/form-data
+
+    Form Data:
+
+        file (required): File ảnh cần upload (jpg, png, gif)
+        type (optional): Loại ảnh để phân loại thư mục (avatars, recipes, steps, general)
+
+    Example request using curl:
+
+    curl -X POST http://localhost:8080/api/upload/image \
+      -F "file=@/path/to/image.jpg" \
+      -F "type=recipes"
+
+    Validation Rules:
+
+        File không được rỗng
+        File phải là ảnh (image/*)
+        Kích thước tối đa: 5MB
+
+    Responses:
+
+        200 OK: Upload thành công, trả về thông tin file.
+
+        {
+            "success": true,
+            "message": "Upload ảnh thành công",
+            "fileName": "recipes/uuid-filename.jpg",
+            "fileUrl": "http://localhost:8080/uploads/recipes/uuid-filename.jpg",
+            "fileSize": 245678,
+            "contentType": "image/jpeg"
+        }
+
+        400 Bad Request: File không hợp lệ.
+
+        {
+            "success": false,
+            "message": "File phải là ảnh (jpg, png, gif)"
+        }
+
+        500 Internal Server Error: Lỗi khi lưu file.
+
+### 2.2 Upload nhiều ảnh
+
+    Method: POST
+
+    Endpoint: /api/upload/images
+
+    Mô tả: Upload nhiều file ảnh cùng lúc.
+
+    Content-Type: multipart/form-data
+
+    Form Data:
+
+        files[] (required): Mảng các file ảnh cần upload
+        type (optional): Loại ảnh để phân loại thư mục
+
+    Responses:
+
+        200 OK: Upload thành công.
+
+        {
+            "success": true,
+            "message": "Upload thành công 3 ảnh",
+            "files": [
+                {
+                    "fileName": "steps/uuid1.jpg",
+                    "fileUrl": "http://localhost:8080/uploads/steps/uuid1.jpg",
+                    "fileSize": 123456
+                },
+                {
+                    "fileName": "steps/uuid2.jpg",
+                    "fileUrl": "http://localhost:8080/uploads/steps/uuid2.jpg",
+                    "fileSize": 234567
+                }
+            ]
+        }
+
+### 2.3 Truy cập ảnh đã upload
+
+    Method: GET
+
+    Endpoint: /uploads/{path}
+
+    Mô tả: Truy cập ảnh đã được upload lên server.
+
+    Parameters:
+
+        path: Đường dẫn đến file (ví dụ: recipes/uuid-filename.jpg)
+
+    Example: 
+
+        http://localhost:8080/uploads/recipes/abc123.jpg
+        http://localhost:8080/uploads/avatars/xyz789.png
+
+    Responses:
+
+        200 OK: Trả về file ảnh.
+
+        404 Not Found: Không tìm thấy file.
+
+### 2.4 Cấu trúc thư mục uploads
+
+    uploads/
+      ├── avatars/        # Ảnh đại diện người dùng
+      ├── recipes/        # Ảnh công thức
+      ├── steps/          # Ảnh các bước nấu
+      └── general/        # Ảnh chung
+
+## 3. Authentication API
 
 Endpoint quản lý các quy trình xác thực như đăng ký, đăng nhập.
 
 Controller: AuthController
 Base Path: /api/auth
-### 2.1 Gửi mã OTP
+### 6.1 Gửi mã OTP
 
     Method: POST
 
@@ -210,7 +351,7 @@ Base Path: /api/auth
 
         400 Bad Request: Email không hợp lệ hoặc không thể gửi.
 
-### 2.2 Đăng ký tài khoản mới
+### 6.2 Đăng ký tài khoản mới
 
     Method: POST
 
@@ -248,7 +389,7 @@ Base Path: /api/auth
 
             Dữ liệu không hợp lệ (thiếu trường bắt buộc).
 
-### 2.3 Đăng nhập
+### 6.3 Đăng nhập
 
     Method: POST
 
@@ -272,14 +413,14 @@ Base Path: /api/auth
 
         401 Unauthorized: Thông tin đăng nhập không hợp lệ (sai email hoặc mật khẩu).
 
-## 3. Recipe API
+## 4. Recipe API
 
 Endpoint quản lý các công thức nấu ăn.
 
 Controller: RecipeController
 Base Path: /api/recipes
 
-### 3.1 Lấy danh sách tất cả công thức
+### 6.1 Lấy danh sách tất cả công thức
 
     Method: GET
 
@@ -340,7 +481,7 @@ Base Path: /api/recipes
             }
         ]
 
-### 3.2 Lấy thông tin công thức theo ID
+### 6.2 Lấy thông tin công thức theo ID
 
     Method: GET
 
@@ -373,7 +514,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức với ID đã cung cấp.
 
-### 3.3 Lấy công thức theo User ID
+### 6.3 Lấy công thức theo User ID
 
     Method: GET
 
@@ -407,7 +548,7 @@ Base Path: /api/recipes
             }
         ]
 
-### 3.4 Lấy công thức của tôi
+### 6.4 Lấy công thức của tôi
 
     Method: GET
 
@@ -425,7 +566,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập hoặc token không hợp lệ.
 
-### 3.5 Tìm kiếm công thức theo tiêu đề
+### 6.5 Tìm kiếm công thức theo tiêu đề
 
     Method: GET
 
@@ -456,7 +597,7 @@ Base Path: /api/recipes
             }
         ]
 
-### 3.6 Tạo công thức mới
+### 6.6 Tạo công thức mới
 
     Method: POST
 
@@ -544,7 +685,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập hoặc token không hợp lệ.
 
-### 3.6.1 Tạo công thức với User ID (Admin)
+### 6.6.1 Tạo công thức với User ID (Admin)
 
     Method: POST
 
@@ -631,7 +772,7 @@ Base Path: /api/recipes
 
         400 Bad Request: Dữ liệu đầu vào không hợp lệ (thiếu trường bắt buộc, giá trị không hợp lệ, user không tồn tại).
 
-### 3.7 Cập nhật công thức
+### 6.7 Cập nhật công thức
 
     Method: PUT
 
@@ -671,7 +812,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức để cập nhật.
 
-### 3.8 Xóa công thức
+### 6.8 Xóa công thức
 
     Method: DELETE
 
@@ -699,7 +840,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức để xóa.
 
-### 3.9 Like công thức
+### 6.9 Like công thức
 
     Method: POST
 
@@ -735,7 +876,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-### 3.10 Unlike công thức
+### 6.10 Unlike công thức
 
     Method: DELETE
 
@@ -769,7 +910,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 3.11 Toggle like công thức
+### 6.11 Toggle like công thức
 
     Method: POST
 
@@ -803,7 +944,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-### 3.12 Kiểm tra trạng thái like
+### 6.12 Kiểm tra trạng thái like
 
     Method: GET
 
@@ -834,7 +975,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 3.13 Lấy danh sách công thức đã like
+### 6.13 Lấy danh sách công thức đã like
 
     Method: GET
 
@@ -858,7 +999,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 3.14 Lưu công thức (Bookmark)
+### 6.14 Lưu công thức (Bookmark)
 
     Method: POST
 
@@ -894,7 +1035,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-### 3.15 Bỏ lưu công thức (Unbookmark)
+### 6.15 Bỏ lưu công thức (Unbookmark)
 
     Method: DELETE
 
@@ -928,7 +1069,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 3.16 Toggle Bookmark
+### 6.16 Toggle Bookmark
 
     Method: POST
 
@@ -962,7 +1103,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-### 3.17 Kiểm tra trạng thái Bookmark
+### 6.17 Kiểm tra trạng thái Bookmark
 
     Method: GET
 
@@ -993,7 +1134,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-### 3.18 Lấy danh sách công thức đã lưu
+### 6.18 Lấy danh sách công thức đã lưu
 
     Method: GET
 
@@ -1017,7 +1158,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 3.19 Thêm bình luận cho công thức
+### 6.19 Thêm bình luận cho công thức
 
     Method: POST
 
@@ -1050,7 +1191,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 3.20 Lấy danh sách bình luận
+### 6.20 Lấy danh sách bình luận
 
     Method: GET
 
@@ -1096,7 +1237,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-### 3.21 Cập nhật bình luận
+### 6.21 Cập nhật bình luận
 
     Method: PUT
 
@@ -1131,7 +1272,7 @@ Base Path: /api/recipes
 
         403 Forbidden: Không có quyền sửa bình luận này.
 
-### 3.22 Xóa bình luận
+### 6.22 Xóa bình luận
 
     Method: DELETE
 
@@ -1156,7 +1297,7 @@ Base Path: /api/recipes
 
         403 Forbidden: Không có quyền xóa bình luận này.
 
-### 3.23 Đánh giá công thức
+### 6.23 Đánh giá công thức
 
     Method: POST
 
@@ -1208,7 +1349,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 3.24 Lấy đánh giá của tôi
+### 6.24 Lấy đánh giá của tôi
 
     Method: GET
 
@@ -1246,7 +1387,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 3.25 Xóa đánh giá
+### 6.25 Xóa đánh giá
 
     Method: DELETE
 
@@ -1270,7 +1411,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 3.26 Lấy thống kê đánh giá
+### 6.26 Lấy thống kê đánh giá
 
     Method: GET
 
@@ -1304,7 +1445,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-### 3.27 Lấy tất cả đánh giá
+### 6.27 Lấy tất cả đánh giá
 
     Method: GET
 
@@ -1349,9 +1490,9 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-## 4. Database Schema
+## 5. Database Schema
 
-### 4.1 Bảng recipes
+### 6.1 Bảng recipes
 
     id: BIGINT (Primary Key, Auto Increment)
     title: VARCHAR(255) NOT NULL
@@ -1367,7 +1508,7 @@ Base Path: /api/recipes
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
-### 4.2 Bảng ingredients
+### 6.2 Bảng ingredients
 
     id: BIGINT (Primary Key, Auto Increment)
     recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
@@ -1375,21 +1516,21 @@ Base Path: /api/recipes
     quantity: VARCHAR(50)
     unit: VARCHAR(50)
 
-### 4.3 Bảng recipe_steps
+### 6.3 Bảng recipe_steps
 
     id: BIGINT (Primary Key, Auto Increment)
     recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
     step_number: INT NOT NULL
     title: TEXT NOT NULL
 
-### 4.4 Bảng step_images
+### 6.4 Bảng step_images
 
     id: BIGINT (Primary Key, Auto Increment)
     step_id: BIGINT NOT NULL (Foreign Key -> recipe_steps.id)
     image_url: VARCHAR(500) NOT NULL
     order_number: INT
 
-### 4.5 Bảng recipe_likes
+### 6.5 Bảng recipe_likes
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1397,7 +1538,7 @@ Base Path: /api/recipes
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_like (user_id, recipe_id)
 
-### 4.6 Bảng recipe_bookmarks
+### 6.6 Bảng recipe_bookmarks
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1405,7 +1546,7 @@ Base Path: /api/recipes
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_bookmark (user_id, recipe_id)
 
-### 4.7 Bảng recipe_comments
+### 6.7 Bảng recipe_comments
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1415,7 +1556,7 @@ Base Path: /api/recipes
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
-### 4.8 Bảng recipe_ratings
+### 6.8 Bảng recipe_ratings
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1425,9 +1566,9 @@ Base Path: /api/recipes
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_rating (user_id, recipe_id)
 
-## 5. Notes
+## 6. Notes
 
-### 5.1 Authentication
+### 6.1 Authentication
 
     Public Endpoints: Các endpoint đánh dấu là "Public" có thể truy cập mà không cần JWT token.
     
@@ -1435,7 +1576,7 @@ Base Path: /api/recipes
     
         Authorization: Bearer <your_jwt_token>
 
-### 5.2 JWT Token
+### 6.2 JWT Token
 
     Token có thời hạn 10 giờ kể từ khi đăng nhập.
     
@@ -1443,7 +1584,7 @@ Base Path: /api/recipes
     
     Khi token hết hạn, cần đăng nhập lại để lấy token mới.
 
-### 5.3 Cascade Delete
+### 6.3 Cascade Delete
 
     Khi xóa recipe, tất cả ingredients, steps, step_images, recipe_likes, recipe_bookmarks, recipe_comments và recipe_ratings liên quan sẽ tự động bị xóa.
     
@@ -1453,7 +1594,7 @@ Base Path: /api/recipes
     
     Khi xóa comment, tất cả replies (comments con) sẽ tự động bị xóa (cascade delete).
 
-### 5.4 Data Relationships
+### 6.4 Data Relationships
 
     1 User có nhiều Recipes (One-to-Many)
     
@@ -1481,7 +1622,7 @@ Base Path: /api/recipes
     
     1 Comment có nhiều Replies/Comments con (One-to-Many, self-referencing)
 
-### 5.5 Recipe Response Fields
+### 6.5 Recipe Response Fields
 
     likesCount: Tổng số lượt like của công thức.
     
@@ -1501,7 +1642,7 @@ Base Path: /api/recipes
     
     Các endpoint public (không cần authentication) vẫn trả về thông tin like, bookmark và rating, nhưng isLikedByCurrentUser, isBookmarkedByCurrentUser và userRating sẽ luôn là false/null.
 
-### 5.6 Rating System
+### 6.6 Rating System
 
     Rating phải từ 1 đến 5 sao.
     
@@ -1511,7 +1652,7 @@ Base Path: /api/recipes
     
     Rating distribution cho biết số lượng đánh giá cho mỗi mức sao (1-5).
 
-### 5.7 Comment System
+### 6.7 Comment System
 
     Comments hỗ trợ nested replies (bình luận có thể trả lời bình luận khác).
     

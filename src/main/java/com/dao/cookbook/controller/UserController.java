@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import com.dao.cookbook.dto.request.UpdateProfileRequestDTO;
 import com.dao.cookbook.dto.request.UserRequestDTO;
 import com.dao.cookbook.dto.response.UserResponseDTO;
 import com.dao.cookbook.service.UserService;
@@ -64,7 +65,7 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(dto));
     }
 
-    @Operation(summary = "Cập nhật thông tin người dùng", description = "Cập nhật thông tin profile của người dùng, không thay đổi email/password")
+    @Operation(summary = "Cập nhật thông tin người dùng", description = "Cập nhật thông tin profile của người dùng (fullName, avatarUrl, bio, hometown). Không thể thay đổi email/password.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Cập nhật thành công"),
         @ApiResponse(responseCode = "404", description = "Không tìm thấy người dùng để cập nhật")
@@ -73,9 +74,9 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> updateUser(
             @Parameter(description = "ID người dùng cần cập nhật", example = "1") 
             @PathVariable Long id,
-            @Parameter(description = "Thông tin người dùng cần cập nhật") 
-            @Valid @RequestBody UserRequestDTO dto) {
-        return ResponseEntity.ok(userService.updateUser(id, dto));
+            @Parameter(description = "Thông tin profile cần cập nhật") 
+            @Valid @RequestBody UpdateProfileRequestDTO dto) {
+        return ResponseEntity.ok(userService.updateProfile(id, dto));
     }
 
     @Operation(summary = "Xóa người dùng theo ID", description = "Xóa người dùng dựa trên ID")
