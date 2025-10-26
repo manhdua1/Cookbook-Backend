@@ -153,6 +153,35 @@ Base Path: /api/users
 
         true
 
+### 1.7 Lấy thông tin người dùng hiện tại
+
+    Method: GET
+
+    Endpoint: /api/users/me
+
+    Mô tả: Lấy thông tin profile của người dùng hiện tại dựa trên JWT token. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Responses:
+
+        200 OK: Trả về thông tin người dùng hiện tại.
+
+        {
+            "id": 1,
+            "email": "user@example.com",
+            "fullName": "Nguyễn Văn A",
+            "avatarUrl": "https://example.com/avatar.jpg",
+            "bio": "Yêu thích nấu ăn",
+            "hometown": "Hà Nội"
+        }
+
+        401 Unauthorized: Người dùng chưa đăng nhập hoặc token không hợp lệ.
+
+        404 Not Found: Không tìm thấy người dùng (email trong token không tồn tại).
+
 ## 2. Authentication API
 
 Endpoint quản lý các quy trình xác thực như đăng ký, đăng nhập.
@@ -195,7 +224,6 @@ Base Path: /api/auth
         "fullName": "Nguyễn Văn A",
         "email": "register.test@example.com",
         "password": "StrongPassword!123",
-        "confirmPassword": "StrongPassword!123",
         "otp": "123456"
     }
 
@@ -204,7 +232,6 @@ Base Path: /api/auth
         fullName: Bắt buộc, không được để trống
         email: Bắt buộc, phải đúng định dạng email
         password: Bắt buộc, không được để trống
-        confirmPassword: Bắt buộc, phải khớp với password
         otp: Bắt buộc, mã OTP đã được gửi đến email
 
     Responses:
@@ -218,8 +245,6 @@ Base Path: /api/auth
             OTP không hợp lệ hoặc đã hết hạn.
 
             Email đã tồn tại.
-
-            Mật khẩu xác nhận không khớp.
 
             Dữ liệu không hợp lệ (thiếu trường bắt buộc).
 

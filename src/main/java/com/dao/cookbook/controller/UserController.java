@@ -7,7 +7,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import com.dao.cookbook.dto.request.UserRequestDTO;
@@ -97,5 +100,29 @@ public class UserController {
             @Parameter(description = "Email cần kiểm tra", example = "test@example.com") 
             @RequestParam String email) {
         return ResponseEntity.ok(userService.emailExists(email));
+    }
+
+    @Operation(summary = "Lấy thông tin người dùng hiện tại", description = "Lấy thông tin profile của người dùng đang đăng nhập (dựa trên JWT token)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Thông tin người dùng được trả về thành công"),
+        @ApiResponse(responseCode = "401", description = "Người dùng chưa đăng nhập"),
+        @ApiResponse(responseCode = "404", description = "Không tìm thấy người dùng")
+    })
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Người dùng chưa đăng nhập");
+            }
+            
+            String email = authentication.getName();
+            UserResponseDTO user = userService.getUserByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+            
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 }

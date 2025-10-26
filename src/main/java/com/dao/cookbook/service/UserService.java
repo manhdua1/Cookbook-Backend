@@ -84,12 +84,7 @@ public class UserService implements org.springframework.security.core.userdetail
             throw new RuntimeException("Email đã được sử dụng");
         }
 
-        // 2. Kiểm tra password khớp confirmPassword
-        if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-            throw new RuntimeException("Mật khẩu xác nhận không khớp");
-        }
-
-        // 3. Tạo entity và mã hóa mật khẩu
+        // 2. Tạo entity và mã hóa mật khẩu
         UserEntity user = new UserEntity();
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -100,10 +95,10 @@ public class UserService implements org.springframework.security.core.userdetail
         user.setBio(null);
         user.setHometown(null);
 
-        // 4. Lưu user
+        // 3. Lưu user
         UserEntity saved = userRepository.save(user);
 
-        // 5. Trả về response
+        // 4. Trả về response
         return userMapper.toResponse(saved);
     }
 

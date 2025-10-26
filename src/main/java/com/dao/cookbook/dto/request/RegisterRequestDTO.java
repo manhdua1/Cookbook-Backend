@@ -16,9 +16,6 @@ public class RegisterRequestDTO {
     @NotBlank(message = "Mật khẩu không được để trống")
     private String password;
 
-    @NotBlank(message = "Xác nhận mật khẩu không được để trống")
-    private String confirmPassword;
-
     @NotBlank(message = "OTP không được để trống")
     private String otp;
 }
