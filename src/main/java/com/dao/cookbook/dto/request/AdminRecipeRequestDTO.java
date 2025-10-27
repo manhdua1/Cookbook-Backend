@@ -3,7 +3,6 @@ package com.dao.cookbook.dto.request;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +14,7 @@ import java.util.List;
 @Data
 public class AdminRecipeRequestDTO {
     
-    @NotNull(message = "User ID không được để trống")
-    @Positive(message = "User ID phải lớn hơn 0")
+    // userId không bắt buộc - sẽ lấy từ JWT token nếu không có
     private Long userId;
     
     @NotBlank(message = "Tiêu đề công thức không được để trống")
@@ -25,10 +23,8 @@ public class AdminRecipeRequestDTO {
     private String imageUrl;
     
     @NotNull(message = "Số khẩu phần không được để trống")
-    @Positive(message = "Số khẩu phần phải lớn hơn 0")
     private Integer servings;
     
-    @Positive(message = "Thời gian nấu phải lớn hơn 0")
     private Integer cookingTime;
     
     @Valid

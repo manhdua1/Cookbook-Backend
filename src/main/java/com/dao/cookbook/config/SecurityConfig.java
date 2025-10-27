@@ -56,6 +56,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/upload/**").permitAll()
                 // Static files - public
                 .requestMatchers("/uploads/**").permitAll()
+                // Admin endpoints - require authentication
+                .requestMatchers("/api/admin/**").authenticated()
                 // Recipe endpoints - GET methods are public, others require authentication
                 .requestMatchers("/api/recipes").permitAll()
                 .requestMatchers("/api/recipes/{id}").permitAll()

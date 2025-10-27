@@ -224,4 +224,72 @@ public class RecipeService {
         // Use the existing createRecipe method
         return createRecipe(recipeDTO, userId);
     }
+
+    /**
+     * Update recipe by admin (no ownership check).
+     */
+    @Transactional
+    public RecipeResponseDTO updateRecipeByAdmin(Long id, AdminRecipeRequestDTO dto) {
+        // Find existing recipe
+        RecipeEntity recipe = recipeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy công thức với ID: " + id));
+
+        // Create RecipeRequestDTO from AdminRecipeRequestDTO
+        RecipeRequestDTO recipeDTO = new RecipeRequestDTO();
+        recipeDTO.setTitle(dto.getTitle());
+        recipeDTO.setImageUrl(dto.getImageUrl());
+        recipeDTO.setServings(dto.getServings());
+        recipeDTO.setCookingTime(dto.getCookingTime());
+        recipeDTO.setIngredients(dto.getIngredients());
+        recipeDTO.setSteps(dto.getSteps());
+
+        // Update basic recipe info
+        recipeMapper.updateEntity(recipe, recipeDTO);
+        recipeRepository.save(recipe);
+
+        // Delete old ingredients and create new ones
+        if (recipe.getIngredients() != null) {
+            ingredientRepository.deleteAll(recipe.getIngredients());
+        }
+        if (dto.getIngredients() != null && !dto.getIngredients().isEmpty()) {
+            List<IngredientEntity> ingredients = dto.getIngredients().stream()
+                    .map(ingredientDTO -> recipeMapper.ingredientToEntity(ingredientDTO, recipe.getId()))
+                    .collect(Collectors.toList());
+            ingredientRepository.saveAll(ingredients);
+        }
+
+        // Delete old steps (cascade will delete images)
+        if (recipe.getSteps() != null) {
+            recipeStepRepository.deleteAll(recipe.getSteps());
+        }
+        
+        // Create new steps and images
+        if (dto.getSteps() != null && !dto.getSteps().isEmpty()) {
+            for (var stepDTO : dto.getSteps()) {
+                RecipeStepEntity step = recipeMapper.stepToEntity(stepDTO, recipe.getId());
+                RecipeStepEntity savedStep = recipeStepRepository.save(step);
+
+                if (stepDTO.getImages() != null && !stepDTO.getImages().isEmpty()) {
+                    List<StepImageEntity> images = stepDTO.getImages().stream()
+                            .map(imageDTO -> recipeMapper.imageToEntity(imageDTO, savedStep.getId()))
+                            .collect(Collectors.toList());
+                    stepImageRepository.saveAll(images);
+                }
+            }
+        }
+
+        // Reload recipe with all relationships
+        return getRecipeById(recipe.getId());
+    }
+
+    /**
+     * Delete recipe by admin (no ownership check).
+     */
+    @Transactional
+    public void deleteRecipeByAdmin(Long id) {
+        RecipeEntity recipe = recipeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy công thức với ID: " + id));
+
+        recipeRepository.delete(recipe);
+    }
 }
