@@ -7,6 +7,7 @@ import com.dao.cookbook.dto.response.UserResponseDTO;
 import com.dao.cookbook.service.RecipeBookmarkService;
 import com.dao.cookbook.service.RecipeLikeService;
 import com.dao.cookbook.service.RecipeService;
+import com.dao.cookbook.service.SearchHistoryService;
 import com.dao.cookbook.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -30,12 +31,14 @@ public class RecipeController {
     private final UserService userService;
     private final RecipeLikeService recipeLikeService;
     private final RecipeBookmarkService recipeBookmarkService;
+    private final SearchHistoryService searchHistoryService;
 
-    public RecipeController(RecipeService recipeService, UserService userService, RecipeLikeService recipeLikeService, RecipeBookmarkService recipeBookmarkService) {
+    public RecipeController(RecipeService recipeService, UserService userService, RecipeLikeService recipeLikeService, RecipeBookmarkService recipeBookmarkService, SearchHistoryService searchHistoryService) {
         this.recipeService = recipeService;
         this.userService = userService;
         this.recipeLikeService = recipeLikeService;
         this.recipeBookmarkService = recipeBookmarkService;
+        this.searchHistoryService = searchHistoryService;
     }
 
     /**
@@ -129,6 +132,17 @@ public class RecipeController {
     @GetMapping("/search")
     public ResponseEntity<List<RecipeResponseDTO>> searchRecipes(@RequestParam String title) {
         Long currentUserId = getCurrentUserIdOrNull();
+        
+        // Tự động lưu lịch sử tìm kiếm nếu user đã đăng nhập
+        if (currentUserId != null && title != null && !title.trim().isEmpty()) {
+            try {
+                searchHistoryService.saveSearchHistory(currentUserId, title);
+            } catch (Exception e) {
+                // Không throw exception nếu lưu lịch sử thất bại
+                System.err.println("Lỗi lưu lịch sử tìm kiếm: " + e.getMessage());
+            }
+        }
+        
         List<RecipeResponseDTO> recipes = recipeService.searchRecipesByTitle(title, currentUserId);
         return ResponseEntity.ok(recipes);
     }

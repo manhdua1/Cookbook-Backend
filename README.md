@@ -572,13 +572,15 @@ Base Path: /api/recipes
 
     Endpoint: /api/recipes/search
 
-    Mô tả: Tìm kiếm công thức theo từ khóa trong tiêu đề (không phân biệt chữ hoa/thường). (Public - không cần xác thực)
+    Mô tả: Tìm kiếm công thức theo từ khóa trong tiêu đề (không phân biệt chữ hoa/thường). Tự động lưu lịch sử tìm kiếm nếu user đã đăng nhập. (Public - không cần xác thực)
 
     Query Parameters:
 
         title (String): Từ khóa cần tìm kiếm trong tiêu đề công thức.
 
     Example: /api/recipes/search?title=phở
+
+    Note: Nếu user đã đăng nhập, query sẽ tự động được lưu vào lịch sử tìm kiếm.
 
     Responses:
 
@@ -1490,9 +1492,204 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-## 5. Database Schema
+## 7. Search History API
 
-### 6.1 Bảng recipes
+Endpoint quản lý lịch sử tìm kiếm của người dùng.
+
+Controller: SearchHistoryController
+Base Path: /api/search-history
+
+### 7.1 Lấy lịch sử tìm kiếm
+
+    Method: GET
+
+    Endpoint: /api/search-history
+
+    Mô tả: Lấy danh sách lịch sử tìm kiếm của người dùng hiện tại. Mặc định trả về các query duy nhất (không trùng lặp). (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Query Parameters:
+
+        limit (Integer, optional): Số lượng kết quả tối đa (mặc định: 20).
+        showAll (Boolean, optional): Trả về tất cả lịch sử (bao gồm trùng lặp) hay chỉ query duy nhất (mặc định: false).
+
+    Example: 
+        /api/search-history?limit=10
+        /api/search-history?showAll=true&limit=50
+
+    Response Body (showAll=false - mặc định):
+
+```json
+{
+  "total": 5,
+  "queries": [
+    "phở bò",
+    "cơm chiên",
+    "bún chả",
+    "bánh mì",
+    "gỏi cuốn"
+  ]
+}
+```
+
+    Response Body (showAll=true):
+
+```json
+{
+  "total": 10,
+  "showing": 10,
+  "history": [
+    {
+      "id": 15,
+      "userId": 5,
+      "searchQuery": "phở bò",
+      "searchedAt": "2025-10-28T14:30:00"
+    },
+    {
+      "id": 14,
+      "userId": 5,
+      "searchQuery": "cơm chiên",
+      "searchedAt": "2025-10-28T14:25:00"
+    },
+    {
+      "id": 13,
+      "userId": 5,
+      "searchQuery": "phở bò",
+      "searchedAt": "2025-10-28T14:20:00"
+    }
+  ]
+}
+```
+
+    Responses:
+
+        200 OK: Trả về lịch sử tìm kiếm.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 7.2 Lưu lịch sử tìm kiếm
+
+    Method: POST
+
+    Endpoint: /api/search-history
+
+    Mô tả: Lưu một query tìm kiếm vào lịch sử của người dùng hiện tại (thủ công). (Requires Authentication)
+
+    Note: Thông thường lịch sử sẽ tự động được lưu khi user gọi API search recipes. Endpoint này để lưu thủ công nếu cần.
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Request Body:
+
+```json
+{
+  "query": "phở bò"
+}
+```
+
+    Responses:
+
+        201 Created: Lưu lịch sử thành công.
+
+```json
+{
+  "id": 16,
+  "userId": 5,
+  "searchQuery": "phở bò",
+  "searchedAt": "2025-10-28T14:35:00"
+}
+```
+
+        400 Bad Request: Query không hợp lệ (trống hoặc null).
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 7.3 Xóa toàn bộ lịch sử tìm kiếm
+
+    Method: DELETE
+
+    Endpoint: /api/search-history
+
+    Mô tả: Xóa tất cả lịch sử tìm kiếm của người dùng hiện tại. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Responses:
+
+        200 OK: "Đã xóa toàn bộ lịch sử tìm kiếm"
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 7.4 Xóa một query cụ thể
+
+    Method: DELETE
+
+    Endpoint: /api/search-history/query
+
+    Mô tả: Xóa một query tìm kiếm cụ thể khỏi lịch sử của người dùng hiện tại. Sẽ xóa tất cả entries của query đó (nếu có nhiều lần search). (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Query Parameters:
+
+        query (String): Query cần xóa.
+
+    Example: /api/search-history/query?query=phở bò
+
+    Responses:
+
+        200 OK: "Đã xóa query: phở bò"
+
+        400 Bad Request: Query không hợp lệ (trống hoặc null).
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 7.5 Thống kê lịch sử tìm kiếm
+
+    Method: GET
+
+    Endpoint: /api/search-history/stats
+
+    Mô tả: Lấy thông tin thống kê về lịch sử tìm kiếm của người dùng. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Response Body:
+
+```json
+{
+  "totalSearches": 25,
+  "uniqueQueries": 8,
+  "recentQueries": [
+    "phở bò",
+    "cơm chiên",
+    "bún chả",
+    "bánh mì",
+    "gỏi cuốn"
+  ]
+}
+```
+
+    Responses:
+
+        200 OK: Trả về thống kê lịch sử tìm kiếm.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+## 8. Database Schema
+
+### 8.1 Bảng recipes
 
     id: BIGINT (Primary Key, Auto Increment)
     title: VARCHAR(255) NOT NULL
@@ -1566,9 +1763,19 @@ Base Path: /api/recipes
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_rating (user_id, recipe_id)
 
-## 6. Notes
+### 8.9 Bảng search_history
 
-### 6.1 Authentication
+    id: BIGINT (Primary Key, Auto Increment)
+    user_id: BIGINT NOT NULL (Foreign Key -> users.id)
+    search_query: VARCHAR(255) NOT NULL
+    searched_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    INDEX: idx_user_id (user_id)
+    INDEX: idx_searched_at (searched_at)
+    INDEX: idx_user_searched (user_id, searched_at DESC)
+
+## 9. Notes
+
+### 9.1 Authentication
 
     Public Endpoints: Các endpoint đánh dấu là "Public" có thể truy cập mà không cần JWT token.
     
@@ -1576,7 +1783,7 @@ Base Path: /api/recipes
     
         Authorization: Bearer <your_jwt_token>
 
-### 6.2 JWT Token
+### 9.2 JWT Token
 
     Token có thời hạn 10 giờ kể từ khi đăng nhập.
     
@@ -1584,7 +1791,7 @@ Base Path: /api/recipes
     
     Khi token hết hạn, cần đăng nhập lại để lấy token mới.
 
-### 6.3 Cascade Delete
+### 9.3 Cascade Delete
 
     Khi xóa recipe, tất cả ingredients, steps, step_images, recipe_likes, recipe_bookmarks, recipe_comments và recipe_ratings liên quan sẽ tự động bị xóa.
     
@@ -1592,9 +1799,11 @@ Base Path: /api/recipes
     
     Khi xóa user, tất cả recipe_likes, recipe_bookmarks, recipe_comments và recipe_ratings của user đó sẽ tự động bị xóa.
     
+    Khi xóa user, tất cả search_history của user đó sẽ tự động bị xóa (CASCADE DELETE).
+    
     Khi xóa comment, tất cả replies (comments con) sẽ tự động bị xóa (cascade delete).
 
-### 6.4 Data Relationships
+### 9.4 Data Relationships
 
     1 User có nhiều Recipes (One-to-Many)
     
@@ -1605,6 +1814,8 @@ Base Path: /api/recipes
     1 User có nhiều Recipe Comments (One-to-Many)
     
     1 User có nhiều Recipe Ratings (One-to-Many)
+    
+    1 User có nhiều Search History entries (One-to-Many)
     
     1 Recipe có nhiều Ingredients (One-to-Many)
     
@@ -1622,7 +1833,7 @@ Base Path: /api/recipes
     
     1 Comment có nhiều Replies/Comments con (One-to-Many, self-referencing)
 
-### 6.5 Recipe Response Fields
+### 9.5 Recipe Response Fields
 
     likesCount: Tổng số lượt like của công thức.
     
@@ -1642,7 +1853,7 @@ Base Path: /api/recipes
     
     Các endpoint public (không cần authentication) vẫn trả về thông tin like, bookmark và rating, nhưng isLikedByCurrentUser, isBookmarkedByCurrentUser và userRating sẽ luôn là false/null.
 
-### 6.6 Rating System
+### 9.6 Rating System
 
     Rating phải từ 1 đến 5 sao.
     
@@ -1652,7 +1863,7 @@ Base Path: /api/recipes
     
     Rating distribution cho biết số lượng đánh giá cho mỗi mức sao (1-5).
 
-### 6.7 Comment System
+### 9.7 Comment System
 
     Comments hỗ trợ nested replies (bình luận có thể trả lời bình luận khác).
     
@@ -1663,3 +1874,19 @@ Base Path: /api/recipes
     Khi xóa bình luận gốc, tất cả replies sẽ bị xóa theo (cascade delete).
     
     Chỉ người tạo bình luận mới có quyền sửa/xóa bình luận đó.
+
+### 9.8 Search History System
+
+    Lịch sử tìm kiếm tự động được lưu khi user gọi API /api/recipes/search?title=xxx
+    
+    Chỉ lưu lịch sử nếu user đã đăng nhập (có JWT token).
+    
+    Mỗi lần search sẽ tạo một entry mới (để track tần suất search).
+    
+    API /api/search-history mặc định trả về các query duy nhất (distinct), giúp hiển thị gợi ý search.
+    
+    Dùng showAll=true để xem toàn bộ lịch sử bao gồm cả entries trùng lặp.
+    
+    User có thể xóa toàn bộ lịch sử hoặc xóa từng query cụ thể.
+    
+    Khi xóa user, toàn bộ lịch sử tìm kiếm của user đó sẽ tự động bị xóa (CASCADE DELETE).

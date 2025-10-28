@@ -58,11 +58,12 @@ public class AdminController {
             @Parameter(description = "Thông tin công thức nấu ăn")
             @Valid @RequestBody AdminRecipeRequestDTO dto) {
         try {
-            Long userId = getCurrentUserId();
+            // Nếu có userId trong DTO thì dùng, không thì lấy từ JWT
+            Long userId = dto.getUserId() != null ? dto.getUserId() : getCurrentUserId();
             RecipeResponseDTO recipe = recipeService.createRecipe(dto, userId);
             
             // Reload with complete info
-            recipe = recipeService.getRecipeById(recipe.getId(), userId);
+            recipe = recipeService.getRecipeById(recipe.getId(), getCurrentUserId());
             
             return ResponseEntity.status(HttpStatus.CREATED).body(recipe);
         } catch (RuntimeException e) {
@@ -87,7 +88,7 @@ public class AdminController {
             @Parameter(description = "Danh sách công thức nấu ăn")
             @Valid @RequestBody java.util.List<AdminRecipeRequestDTO> dtos) {
         try {
-            Long userId = getCurrentUserId();
+            Long currentUserId = getCurrentUserId();
             
             java.util.List<RecipeResponseDTO> createdRecipes = new java.util.ArrayList<>();
             java.util.List<String> errors = new java.util.ArrayList<>();
@@ -95,8 +96,10 @@ public class AdminController {
             for (int i = 0; i < dtos.size(); i++) {
                 try {
                     AdminRecipeRequestDTO dto = dtos.get(i);
+                    // Nếu có userId trong DTO thì dùng, không thì lấy từ JWT
+                    Long userId = dto.getUserId() != null ? dto.getUserId() : currentUserId;
                     RecipeResponseDTO recipe = recipeService.createRecipe(dto, userId);
-                    recipe = recipeService.getRecipeById(recipe.getId(), userId);
+                    recipe = recipeService.getRecipeById(recipe.getId(), currentUserId);
                     createdRecipes.add(recipe);
                 } catch (Exception e) {
                     errors.add("Recipe " + (i + 1) + ": " + e.getMessage());

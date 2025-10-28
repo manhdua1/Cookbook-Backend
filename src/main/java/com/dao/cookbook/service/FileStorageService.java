@@ -87,11 +87,25 @@ public class FileStorageService {
     }
 
     /**
-     * Validate file là ảnh
+     * Validate file là ảnh (kiểm tra cả content-type và extension)
      */
     public boolean isImageFile(MultipartFile file) {
+        // Kiểm tra content-type
         String contentType = file.getContentType();
-        return contentType != null && contentType.startsWith("image/");
+        if (contentType != null && contentType.startsWith("image/")) {
+            return true;
+        }
+        
+        // Nếu content-type không có hoặc không phải image, kiểm tra extension
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName != null) {
+            String extension = originalFileName.substring(originalFileName.lastIndexOf(".") + 1).toLowerCase();
+            return extension.equals("jpg") || extension.equals("jpeg") || 
+                   extension.equals("png") || extension.equals("gif") || 
+                   extension.equals("webp") || extension.equals("bmp");
+        }
+        
+        return false;
     }
 
     /**
