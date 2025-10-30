@@ -1160,7 +1160,137 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 6.19 Thêm bình luận cho công thức
+### 6.19 Lấy danh sách công thức đã xem gần đây
+
+    Method: GET
+
+    Endpoint: /api/recipes/recently-viewed
+
+    Mô tả: Lấy danh sách các công thức mà người dùng hiện tại đã xem gần đây, sắp xếp theo thời gian xem mới nhất. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Query Parameters:
+
+        limit (Integer, optional): Số lượng công thức tối đa trả về (mặc định: 20)
+
+    Example:
+        /api/recipes/recently-viewed?limit=10
+
+    Response Body:
+
+```json
+[
+  {
+    "id": 15,
+    "title": "Bún Chả Hà Nội",
+    "description": "Món ăn đặc trưng của Hà Nội",
+    "imageUrl": "https://example.com/bun-cha.jpg",
+    "userId": 3,
+    "userName": "Nguyễn Thị C",
+    "userAvatar": "https://example.com/avatar3.jpg",
+    "cookingTime": 60,
+    "servings": 2,
+    "difficulty": "easy",
+    "category": "Vietnamese",
+    "averageRating": 4.8,
+    "totalRatings": 25,
+    "totalLikes": 120,
+    "totalBookmarks": 45,
+    "totalComments": 18,
+    "isLikedByCurrentUser": true,
+    "isBookmarkedByCurrentUser": false,
+    "createdAt": "2024-01-10T14:30:00"
+  },
+  {
+    "id": 8,
+    "title": "Phở Gà",
+    "description": "Phở gà thơm ngon bổ dưỡng",
+    "imageUrl": "https://example.com/pho-ga.jpg",
+    "userId": 2,
+    "userName": "Trần Văn B",
+    "userAvatar": "https://example.com/avatar2.jpg",
+    "cookingTime": 90,
+    "servings": 4,
+    "difficulty": "medium",
+    "category": "Vietnamese",
+    "averageRating": 4.5,
+    "totalRatings": 15,
+    "totalLikes": 85,
+    "totalBookmarks": 30,
+    "totalComments": 12,
+    "isLikedByCurrentUser": false,
+    "isBookmarkedByCurrentUser": true,
+    "createdAt": "2024-01-05T10:00:00"
+  }
+]
+```
+
+    Responses:
+
+        200 OK: Trả về danh sách các công thức đã xem gần đây.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 6.20 Xóa lịch sử xem công thức
+
+    Method: DELETE
+
+    Endpoint: /api/recipes/recently-viewed
+
+    Mô tả: Xóa toàn bộ lịch sử xem công thức của người dùng hiện tại. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Response Body:
+
+```json
+{
+  "message": "View history cleared successfully"
+}
+```
+
+    Responses:
+
+        200 OK: Xóa lịch sử thành công.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 6.21 Xóa một công thức khỏi lịch sử xem
+
+    Method: DELETE
+
+    Endpoint: /api/recipes/recently-viewed/{recipeId}
+
+    Mô tả: Xóa một công thức cụ thể khỏi lịch sử xem của người dùng hiện tại. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Path Parameters:
+
+        recipeId (Long): ID của công thức cần xóa khỏi lịch sử
+
+    Response Body:
+
+```json
+{
+  "message": "Recipe removed from view history successfully"
+}
+```
+
+    Responses:
+
+        200 OK: Xóa công thức khỏi lịch sử thành công.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 6.22 Thêm bình luận cho công thức
 
     Method: POST
 
@@ -1193,7 +1323,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 6.20 Lấy danh sách bình luận
+### 6.23 Lấy danh sách bình luận
 
     Method: GET
 
@@ -1239,7 +1369,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-### 6.21 Cập nhật bình luận
+### 6.24 Cập nhật bình luận
 
     Method: PUT
 
@@ -1274,7 +1404,7 @@ Base Path: /api/recipes
 
         403 Forbidden: Không có quyền sửa bình luận này.
 
-### 6.22 Xóa bình luận
+### 6.25 Xóa bình luận
 
     Method: DELETE
 
@@ -1299,7 +1429,7 @@ Base Path: /api/recipes
 
         403 Forbidden: Không có quyền xóa bình luận này.
 
-### 6.23 Đánh giá công thức
+### 6.26 Đánh giá công thức
 
     Method: POST
 
@@ -1351,7 +1481,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 6.24 Lấy đánh giá của tôi
+### 6.27 Lấy đánh giá của tôi
 
     Method: GET
 
@@ -1389,7 +1519,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 6.25 Xóa đánh giá
+### 6.28 Xóa đánh giá
 
     Method: DELETE
 
@@ -1413,7 +1543,7 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 6.26 Lấy thống kê đánh giá
+### 6.29 Lấy thống kê đánh giá
 
     Method: GET
 
@@ -1447,7 +1577,7 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-### 6.27 Lấy tất cả đánh giá
+### 6.30 Lấy tất cả đánh giá
 
     Method: GET
 
@@ -2125,7 +2255,22 @@ Base Path: /api/search-history
 
 ## 10. Database Schema
 
-### 10.1 Bảng recipes
+### 10.1 Bảng users
+
+    id: BIGINT (Primary Key, Auto Increment)
+    email: VARCHAR(255) NOT NULL UNIQUE
+    password: VARCHAR(255) NOT NULL
+    full_name: VARCHAR(255) NOT NULL
+    avatar_url: VARCHAR(500)
+    bio: TEXT
+    hometown: VARCHAR(255)
+    provider: VARCHAR(50) DEFAULT 'local'
+    followers_count: INT DEFAULT 0
+    following_count: INT DEFAULT 0
+    created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+### 10.2 Bảng recipes
 
     id: BIGINT (Primary Key, Auto Increment)
     title: VARCHAR(255) NOT NULL
@@ -2141,7 +2286,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
-### 10.2 Bảng ingredients
+### 10.3 Bảng ingredients
 
     id: BIGINT (Primary Key, Auto Increment)
     recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
@@ -2149,21 +2294,21 @@ Base Path: /api/search-history
     quantity: VARCHAR(50)
     unit: VARCHAR(50)
 
-### 10.3 Bảng recipe_steps
+### 10.4 Bảng recipe_steps
 
     id: BIGINT (Primary Key, Auto Increment)
     recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
     step_number: INT NOT NULL
     title: TEXT NOT NULL
 
-### 10.4 Bảng step_images
+### 10.5 Bảng step_images
 
     id: BIGINT (Primary Key, Auto Increment)
     step_id: BIGINT NOT NULL (Foreign Key -> recipe_steps.id)
     image_url: VARCHAR(500) NOT NULL
     order_number: INT
 
-### 10.5 Bảng recipe_likes
+### 10.6 Bảng recipe_likes
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -2171,7 +2316,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_like (user_id, recipe_id)
 
-### 10.6 Bảng recipe_bookmarks
+### 10.7 Bảng recipe_bookmarks
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -2179,7 +2324,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_bookmark (user_id, recipe_id)
 
-### 10.7 Bảng recipe_comments
+### 10.8 Bảng recipe_comments
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -2189,7 +2334,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
-### 10.8 Bảng recipe_ratings
+### 10.9 Bảng recipe_ratings
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -2199,7 +2344,7 @@ Base Path: /api/search-history
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_rating (user_id, recipe_id)
 
-### 10.9 Bảng notifications
+### 10.10 Bảng notifications
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -2216,7 +2361,7 @@ Base Path: /api/search-history
     INDEX: idx_type (type)
     INDEX: idx_user_created (user_id, created_at DESC)
 
-### 10.10 Bảng search_history
+### 10.11 Bảng search_history
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -2226,7 +2371,7 @@ Base Path: /api/search-history
     INDEX: idx_searched_at (searched_at)
     INDEX: idx_user_searched (user_id, searched_at DESC)
 
-### 10.11 Bảng user_follows
+### 10.12 Bảng user_follows
 
     id: BIGINT (Primary Key, Auto Increment)
     follower_id: BIGINT NOT NULL (Foreign Key -> users.id) - Người theo dõi
@@ -2237,6 +2382,18 @@ Base Path: /api/search-history
     INDEX: idx_user_follows_follower (follower_id)
     INDEX: idx_user_follows_following (following_id)
     INDEX: idx_user_follows_created_at (created_at)
+
+### 10.13 Bảng recipe_view_history
+
+    id: BIGINT (Primary Key, Auto Increment)
+    user_id: BIGINT NOT NULL (Foreign Key -> users.id)
+    recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
+    viewed_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    INDEX: idx_recipe_view_history_user (user_id)
+    INDEX: idx_recipe_view_history_recipe (recipe_id)
+    INDEX: idx_recipe_view_history_viewed_at (viewed_at)
+    INDEX: idx_recipe_view_history_user_recipe (user_id, recipe_id)
+    INDEX: idx_recipe_view_history_user_viewed (user_id, viewed_at DESC)
 
 ## 11. Notes
 
@@ -2417,3 +2574,21 @@ Base Path: /api/search-history
     Số lượng followers/following được tính động thông qua các service methods.
     
     Khi xóa user, tất cả follow relationships liên quan sẽ tự động bị xóa (CASCADE DELETE).
+
+### 11.11 Recipe View History System
+
+    Lịch sử xem công thức tự động được lưu khi user gọi API GET /api/recipes/{id}
+    
+    Chỉ lưu lịch sử nếu user đã đăng nhập (có JWT token).
+    
+    Mỗi lần xem recipe sẽ tạo một entry mới, cập nhật viewedAt timestamp.
+    
+    API /api/recipes/recently-viewed trả về danh sách công thức đã xem gần đây (distinct recipes, most recent view of each).
+    
+    Mặc định trả về 20 công thức gần nhất, có thể tùy chỉnh với parameter limit.
+    
+    User có thể xóa toàn bộ lịch sử xem hoặc xóa từng công thức cụ thể khỏi lịch sử.
+    
+    Lịch sử xem giúp user dễ dàng tìm lại các công thức đã xem trước đó.
+    
+    Khi xóa user hoặc recipe, các entry liên quan sẽ tự động bị xóa (CASCADE DELETE).

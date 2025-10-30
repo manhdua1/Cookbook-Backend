@@ -32,13 +32,15 @@ public class RecipeController {
     private final RecipeLikeService recipeLikeService;
     private final RecipeBookmarkService recipeBookmarkService;
     private final SearchHistoryService searchHistoryService;
+    private final com.dao.cookbook.service.RecipeViewHistoryService viewHistoryService;
 
-    public RecipeController(RecipeService recipeService, UserService userService, RecipeLikeService recipeLikeService, RecipeBookmarkService recipeBookmarkService, SearchHistoryService searchHistoryService) {
+    public RecipeController(RecipeService recipeService, UserService userService, RecipeLikeService recipeLikeService, RecipeBookmarkService recipeBookmarkService, SearchHistoryService searchHistoryService, com.dao.cookbook.service.RecipeViewHistoryService viewHistoryService) {
         this.recipeService = recipeService;
         this.userService = userService;
         this.recipeLikeService = recipeLikeService;
         this.recipeBookmarkService = recipeBookmarkService;
         this.searchHistoryService = searchHistoryService;
+        this.viewHistoryService = viewHistoryService;
     }
 
     /**
@@ -50,6 +52,49 @@ public class RecipeController {
         Long currentUserId = Long.parseLong(authentication.getName());
         List<RecipeResponseDTO> feed = recipeService.getFollowingFeed(currentUserId);
         return ResponseEntity.ok(feed);
+    }
+
+    /**
+     * Get recently viewed recipes by current user
+     * GET /api/recipes/recently-viewed
+     */
+    @GetMapping("/recently-viewed")
+    public ResponseEntity<List<RecipeResponseDTO>> getRecentlyViewedRecipes(
+            @RequestParam(required = false) Integer limit,
+            Authentication authentication) {
+        Long currentUserId = Long.parseLong(authentication.getName());
+        List<RecipeResponseDTO> recipes = viewHistoryService.getRecentlyViewedRecipes(currentUserId, limit);
+        return ResponseEntity.ok(recipes);
+    }
+
+    /**
+     * Clear view history for current user
+     * DELETE /api/recipes/recently-viewed
+     */
+    @DeleteMapping("/recently-viewed")
+    public ResponseEntity<Map<String, String>> clearViewHistory(Authentication authentication) {
+        Long currentUserId = Long.parseLong(authentication.getName());
+        viewHistoryService.clearUserViewHistory(currentUserId);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "View history cleared successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Remove a specific recipe from view history
+     * DELETE /api/recipes/recently-viewed/{recipeId}
+     */
+    @DeleteMapping("/recently-viewed/{recipeId}")
+    public ResponseEntity<Map<String, String>> removeFromViewHistory(
+            @PathVariable Long recipeId,
+            Authentication authentication) {
+        Long currentUserId = Long.parseLong(authentication.getName());
+        viewHistoryService.removeRecipeFromHistory(currentUserId, recipeId);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Recipe removed from view history successfully");
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -104,6 +149,17 @@ public class RecipeController {
         try {
             Long currentUserId = getCurrentUserIdOrNull();
             RecipeResponseDTO recipe = recipeService.getRecipeById(id, currentUserId);
+            
+            // Save view history if user is authenticated
+            if (currentUserId != null) {
+                try {
+                    viewHistoryService.saveViewHistory(currentUserId, id);
+                } catch (Exception e) {
+                    // Don't fail the request if view history save fails
+                    System.err.println("Failed to save view history: " + e.getMessage());
+                }
+            }
+            
             return ResponseEntity.ok(recipe);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
