@@ -132,6 +132,18 @@ public class NotificationService {
     }
 
     /**
+     * Create notification when someone follows a user.
+     */
+    @Transactional
+    public void createFollowNotification(Long followerId, Long followingId) {
+        UserEntity follower = userRepository.findById(followerId).orElse(null);
+        if (follower == null) return;
+
+        String message = follower.getFullName() + " đã bắt đầu theo dõi bạn";
+        createNotification(followingId, "FOLLOW", followerId, null, null, message);
+    }
+
+    /**
      * Get all notifications for a user.
      */
     public List<NotificationEntity> getUserNotifications(Long userId) {

@@ -23,17 +23,20 @@ public class RecipeService {
     private final RecipeStepRepository recipeStepRepository;
     private final StepImageRepository stepImageRepository;
     private final RecipeMapper recipeMapper;
+    private final UserFollowService userFollowService;
 
     public RecipeService(RecipeRepository recipeRepository,
                         IngredientRepository ingredientRepository,
                         RecipeStepRepository recipeStepRepository,
                         StepImageRepository stepImageRepository,
-                        RecipeMapper recipeMapper) {
+                        RecipeMapper recipeMapper,
+                        UserFollowService userFollowService) {
         this.recipeRepository = recipeRepository;
         this.ingredientRepository = ingredientRepository;
         this.recipeStepRepository = recipeStepRepository;
         this.stepImageRepository = stepImageRepository;
         this.recipeMapper = recipeMapper;
+        this.userFollowService = userFollowService;
     }
 
     /**
@@ -96,6 +99,28 @@ public class RecipeService {
      */
     public List<RecipeResponseDTO> searchRecipesByTitle(String title, Long currentUserId) {
         return recipeRepository.findByTitleContainingIgnoreCase(title).stream()
+                .map(recipe -> recipeMapper.toResponse(recipe, currentUserId))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get feed of recipes from users the current user is following.
+     * Returns recipes ordered by creation date (newest first).
+     */
+    public List<RecipeResponseDTO> getFollowingFeed(Long currentUserId) {
+        // Get list of user IDs that current user is following
+        List<Long> followingIds = userFollowService.getFollowingIds(currentUserId);
+        
+        // If not following anyone, return empty list
+        if (followingIds == null || followingIds.isEmpty()) {
+            return List.of();
+        }
+        
+        // Get recipes from followed users
+        List<RecipeEntity> recipes = recipeRepository.findByUserIdInOrderByCreatedAtDesc(followingIds);
+        
+        // Map to response DTOs
+        return recipes.stream()
                 .map(recipe -> recipeMapper.toResponse(recipe, currentUserId))
                 .collect(Collectors.toList());
     }

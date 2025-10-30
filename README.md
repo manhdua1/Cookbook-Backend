@@ -1684,14 +1684,258 @@ Base Path: /api/notifications
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-## 8. Search History API
+## 8. User Follow API
+
+Endpoint quản lý chức năng theo dõi (follow) người dùng.
+
+Controller: UserFollowController
+Base Path: /api/users
+
+### 8.1 Follow một người dùng
+
+    Method: POST
+
+    Endpoint: /api/users/{userId}/follow
+
+    Mô tả: Người dùng hiện tại theo dõi người dùng khác. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Path Parameters:
+
+        userId (Long): ID của người dùng muốn theo dõi.
+
+    Responses:
+
+        200 OK: Theo dõi thành công.
+
+```json
+{
+  "message": "Successfully followed user"
+}
+```
+
+        400 Bad Request: 
+            - Cannot follow yourself
+            - Already following this user
+            - User not found
+
+```json
+{
+  "error": "Cannot follow yourself"
+}
+```
+
+### 8.2 Unfollow một người dùng
+
+    Method: DELETE
+
+    Endpoint: /api/users/{userId}/follow
+
+    Mô tả: Hủy theo dõi một người dùng. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Path Parameters:
+
+        userId (Long): ID của người dùng muốn hủy theo dõi.
+
+    Responses:
+
+        200 OK: Hủy theo dõi thành công.
+
+```json
+{
+  "message": "Successfully unfollowed user"
+}
+```
+
+        400 Bad Request: Not following this user.
+
+```json
+{
+  "error": "Not following this user"
+}
+```
+
+### 8.3 Lấy danh sách người đang theo dõi
+
+    Method: GET
+
+    Endpoint: /api/users/{userId}/following
+
+    Mô tả: Lấy danh sách những người mà user đang theo dõi. (Public)
+
+    Path Parameters:
+
+        userId (Long): ID của người dùng.
+
+    Responses:
+
+        200 OK: Trả về danh sách user.
+
+```json
+[
+  {
+    "id": 2,
+    "email": "user2@example.com",
+    "fullName": "Nguyen Van B",
+    "avatarUrl": "https://example.com/avatar2.jpg",
+    "bio": "Food lover",
+    "hometown": "Hanoi",
+    "provider": "local",
+    "followersCount": 50,
+    "followingCount": 30
+  },
+  {
+    "id": 3,
+    "email": "user3@example.com",
+    "fullName": "Tran Thi C",
+    "avatarUrl": null,
+    "bio": null,
+    "hometown": "HCM",
+    "provider": "google",
+    "followersCount": 120,
+    "followingCount": 85
+  }
+]
+```
+
+### 8.4 Lấy danh sách người theo dõi (followers)
+
+    Method: GET
+
+    Endpoint: /api/users/{userId}/followers
+
+    Mô tả: Lấy danh sách những người đang theo dõi user. (Public)
+
+    Path Parameters:
+
+        userId (Long): ID của người dùng.
+
+    Responses:
+
+        200 OK: Trả về danh sách user.
+
+```json
+[
+  {
+    "id": 4,
+    "email": "user4@example.com",
+    "fullName": "Le Van D",
+    "avatarUrl": "https://example.com/avatar4.jpg",
+    "bio": "Chef",
+    "hometown": "Da Nang",
+    "provider": "local",
+    "followersCount": 200,
+    "followingCount": 150
+  }
+]
+```
+
+### 8.5 Kiểm tra xem có đang follow không
+
+    Method: GET
+
+    Endpoint: /api/users/{userId}/is-following
+
+    Mô tả: Kiểm tra xem người dùng hiện tại có đang follow user này không. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Path Parameters:
+
+        userId (Long): ID của người dùng cần kiểm tra.
+
+    Responses:
+
+        200 OK:
+
+```json
+{
+  "isFollowing": true
+}
+```
+
+### 8.6 Lấy thống kê follow
+
+    Method: GET
+
+    Endpoint: /api/users/{userId}/follow-stats
+
+    Mô tả: Lấy số lượng followers và following của một user. (Public)
+
+    Path Parameters:
+
+        userId (Long): ID của người dùng.
+
+    Responses:
+
+        200 OK:
+
+```json
+{
+  "followersCount": 150,
+  "followingCount": 80
+}
+```
+
+### 8.7 Lấy feed từ người mình follow
+
+    Method: GET
+
+    Endpoint: /api/recipes/following-feed
+
+    Mô tả: Lấy danh sách công thức từ những người mà user đang follow, sắp xếp theo thời gian đăng mới nhất. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Responses:
+
+        200 OK: Trả về danh sách recipes từ những người đang follow.
+
+```json
+[
+  {
+    "id": 101,
+    "title": "Phở Bò Hà Nội",
+    "description": "Món phở truyền thống",
+    "imageUrl": "https://example.com/pho.jpg",
+    "userId": 2,
+    "userName": "Nguyen Van B",
+    "userAvatar": "https://example.com/avatar2.jpg",
+    "cookingTime": 120,
+    "servings": 4,
+    "difficulty": "medium",
+    "category": "Vietnamese",
+    "averageRating": 4.5,
+    "totalRatings": 10,
+    "totalLikes": 25,
+    "totalBookmarks": 15,
+    "totalComments": 8,
+    "isLikedByCurrentUser": true,
+    "isBookmarkedByCurrentUser": false,
+    "createdAt": "2024-01-15T10:30:00"
+  }
+]
+```
+
+## 9. Search History API
 
 Endpoint quản lý lịch sử tìm kiếm của người dùng.
 
 Controller: SearchHistoryController
 Base Path: /api/search-history
 
-### 8.1 Lấy lịch sử tìm kiếm
+### 9.1 Lấy lịch sử tìm kiếm
 
     Method: GET
 
@@ -1762,7 +2006,7 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 8.2 Lưu lịch sử tìm kiếm
+### 9.2 Lưu lịch sử tìm kiếm
 
     Method: POST
 
@@ -1801,7 +2045,7 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 8.3 Xóa toàn bộ lịch sử tìm kiếm
+### 9.3 Xóa toàn bộ lịch sử tìm kiếm
 
     Method: DELETE
 
@@ -1819,7 +2063,7 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 8.4 Xóa một query cụ thể
+### 9.4 Xóa một query cụ thể
 
     Method: DELETE
 
@@ -1845,7 +2089,7 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 8.5 Thống kê lịch sử tìm kiếm
+### 9.5 Thống kê lịch sử tìm kiếm
 
     Method: GET
 
@@ -1879,9 +2123,9 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-## 9. Database Schema
+## 10. Database Schema
 
-### 9.1 Bảng recipes
+### 10.1 Bảng recipes
 
     id: BIGINT (Primary Key, Auto Increment)
     title: VARCHAR(255) NOT NULL
@@ -1897,7 +2141,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
-### 9.2 Bảng ingredients
+### 10.2 Bảng ingredients
 
     id: BIGINT (Primary Key, Auto Increment)
     recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
@@ -1905,21 +2149,21 @@ Base Path: /api/search-history
     quantity: VARCHAR(50)
     unit: VARCHAR(50)
 
-### 9.3 Bảng recipe_steps
+### 10.3 Bảng recipe_steps
 
     id: BIGINT (Primary Key, Auto Increment)
     recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
     step_number: INT NOT NULL
     title: TEXT NOT NULL
 
-### 9.4 Bảng step_images
+### 10.4 Bảng step_images
 
     id: BIGINT (Primary Key, Auto Increment)
     step_id: BIGINT NOT NULL (Foreign Key -> recipe_steps.id)
     image_url: VARCHAR(500) NOT NULL
     order_number: INT
 
-### 9.5 Bảng recipe_likes
+### 10.5 Bảng recipe_likes
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1927,7 +2171,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_like (user_id, recipe_id)
 
-### 9.6 Bảng recipe_bookmarks
+### 10.6 Bảng recipe_bookmarks
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1935,7 +2179,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_bookmark (user_id, recipe_id)
 
-### 9.7 Bảng recipe_comments
+### 10.7 Bảng recipe_comments
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1945,7 +2189,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
-### 9.8 Bảng recipe_ratings
+### 10.8 Bảng recipe_ratings
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1955,7 +2199,7 @@ Base Path: /api/search-history
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_rating (user_id, recipe_id)
 
-### 9.9 Bảng notifications
+### 10.9 Bảng notifications
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1972,7 +2216,7 @@ Base Path: /api/search-history
     INDEX: idx_type (type)
     INDEX: idx_user_created (user_id, created_at DESC)
 
-### 9.10 Bảng search_history
+### 10.10 Bảng search_history
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1982,9 +2226,21 @@ Base Path: /api/search-history
     INDEX: idx_searched_at (searched_at)
     INDEX: idx_user_searched (user_id, searched_at DESC)
 
-## 10. Notes
+### 10.11 Bảng user_follows
 
-### 10.1 Authentication
+    id: BIGINT (Primary Key, Auto Increment)
+    follower_id: BIGINT NOT NULL (Foreign Key -> users.id) - Người theo dõi
+    following_id: BIGINT NOT NULL (Foreign Key -> users.id) - Người được theo dõi
+    created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    UNIQUE KEY: uk_user_follows_unique (follower_id, following_id)
+    CHECK: chk_user_follows_no_self (follower_id != following_id)
+    INDEX: idx_user_follows_follower (follower_id)
+    INDEX: idx_user_follows_following (following_id)
+    INDEX: idx_user_follows_created_at (created_at)
+
+## 11. Notes
+
+### 11.1 Authentication
 
     Public Endpoints: Các endpoint đánh dấu là "Public" có thể truy cập mà không cần JWT token.
     
@@ -1992,7 +2248,7 @@ Base Path: /api/search-history
     
         Authorization: Bearer <your_jwt_token>
 
-### 10.2 JWT Token
+### 11.2 JWT Token
 
     Token có thời hạn 10 giờ kể từ khi đăng nhập.
     
@@ -2000,7 +2256,7 @@ Base Path: /api/search-history
     
     Khi token hết hạn, cần đăng nhập lại để lấy token mới.
 
-### 10.3 Cascade Delete
+### 11.3 Cascade Delete
 
     Khi xóa recipe, tất cả ingredients, steps, step_images, recipe_likes, recipe_bookmarks, recipe_comments và recipe_ratings liên quan sẽ tự động bị xóa.
     
@@ -2016,7 +2272,7 @@ Base Path: /api/search-history
     
     Khi xóa recipe hoặc comment, tất cả notifications liên quan sẽ tự động bị xóa (CASCADE DELETE).
 
-### 10.4 Data Relationships
+### 11.4 Data Relationships
 
     1 User có nhiều Recipes (One-to-Many)
     
@@ -2054,7 +2310,7 @@ Base Path: /api/search-history
     
     1 Comment có nhiều Notifications (One-to-Many)
 
-### 10.5 Recipe Response Fields
+### 11.5 Recipe Response Fields
 
     likesCount: Tổng số lượt like của công thức.
     
@@ -2074,7 +2330,7 @@ Base Path: /api/search-history
     
     Các endpoint public (không cần authentication) vẫn trả về thông tin like, bookmark và rating, nhưng isLikedByCurrentUser, isBookmarkedByCurrentUser và userRating sẽ luôn là false/null.
 
-### 10.6 Rating System
+### 11.6 Rating System
 
     Rating phải từ 1 đến 5 sao.
     
@@ -2084,7 +2340,7 @@ Base Path: /api/search-history
     
     Rating distribution cho biết số lượng đánh giá cho mỗi mức sao (1-5).
 
-### 10.7 Comment System
+### 11.7 Comment System
 
     Comments hỗ trợ nested replies (bình luận có thể trả lời bình luận khác).
     
@@ -2096,7 +2352,7 @@ Base Path: /api/search-history
     
     Chỉ người tạo bình luận mới có quyền sửa/xóa bình luận đó.
 
-### 10.8 Notification System
+### 11.8 Notification System
 
     Thông báo tự động được tạo khi:
         - Có người like công thức của bạn
@@ -2130,7 +2386,7 @@ Base Path: /api/search-history
         - Đánh dấu đã đọc (1 hoặc tất cả)
         - Xóa thông báo (1 hoặc tất cả)
 
-### 10.9 Search History System
+### 11.9 Search History System
 
     Lịch sử tìm kiếm tự động được lưu khi user gọi API /api/recipes/search?title=xxx
     
@@ -2145,3 +2401,19 @@ Base Path: /api/search-history
     User có thể xóa toàn bộ lịch sử hoặc xóa từng query cụ thể.
     
     Khi xóa user, toàn bộ lịch sử tìm kiếm của user đó sẽ tự động bị xóa (CASCADE DELETE).
+
+### 11.10 User Follow System
+
+    Người dùng có thể follow và unfollow người dùng khác.
+    
+    Không thể tự follow chính mình (CHECK constraint).
+    
+    Một user chỉ có thể follow người khác một lần duy nhất (UNIQUE constraint trên follower_id + following_id).
+    
+    Khi follow một người, hệ thống tự động tạo notification cho người được follow.
+    
+    Following Feed (/api/recipes/following-feed) trả về các công thức từ những người mà user đang follow, sắp xếp theo thời gian mới nhất.
+    
+    Số lượng followers/following được tính động thông qua các service methods.
+    
+    Khi xóa user, tất cả follow relationships liên quan sẽ tự động bị xóa (CASCADE DELETE).

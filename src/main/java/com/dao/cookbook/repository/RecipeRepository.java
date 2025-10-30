@@ -2,6 +2,8 @@ package com.dao.cookbook.repository;
 
 import com.dao.cookbook.entity.RecipeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
@@ -26,4 +28,14 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
      * @return list of recipes
      */
     List<RecipeEntity> findByTitleContainingIgnoreCase(String title);
+    
+    /**
+     * Find recipes from users that the current user is following.
+     * Ordered by creation date descending (newest first).
+     * 
+     * @param userIds list of user IDs that the current user is following
+     * @return list of recipes from followed users
+     */
+    @Query("SELECT r FROM RecipeEntity r WHERE r.userId IN :userIds ORDER BY r.createdAt DESC")
+    List<RecipeEntity> findByUserIdInOrderByCreatedAtDesc(@Param("userIds") List<Long> userIds);
 }

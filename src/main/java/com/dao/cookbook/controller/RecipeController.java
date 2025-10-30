@@ -42,6 +42,17 @@ public class RecipeController {
     }
 
     /**
+     * Get feed of recipes from users the current user is following
+     * GET /api/recipes/following-feed
+     */
+    @GetMapping("/following-feed")
+    public ResponseEntity<List<RecipeResponseDTO>> getFollowingFeed(Authentication authentication) {
+        Long currentUserId = Long.parseLong(authentication.getName());
+        List<RecipeResponseDTO> feed = recipeService.getFollowingFeed(currentUserId);
+        return ResponseEntity.ok(feed);
+    }
+
+    /**
      * Get current authenticated user ID from security context.
      * Throws RuntimeException if user is not authenticated.
      */
