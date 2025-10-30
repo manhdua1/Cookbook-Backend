@@ -1492,14 +1492,206 @@ Base Path: /api/recipes
 
         404 Not Found: Không tìm thấy công thức.
 
-## 7. Search History API
+## 7. Notification API
+
+Endpoint quản lý thông báo cho người dùng.
+
+Controller: NotificationController
+Base Path: /api/notifications
+
+### 7.1 Lấy tất cả thông báo
+
+    Method: GET
+
+    Endpoint: /api/notifications
+
+    Mô tả: Lấy danh sách tất cả thông báo của người dùng hiện tại, sắp xếp theo thời gian mới nhất. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Response Body:
+
+```json
+[
+  {
+    "id": 1,
+    "userId": 5,
+    "type": "LIKE",
+    "actorId": 8,
+    "actorName": "Nguyễn Văn A",
+    "actorAvatar": "https://example.com/avatar.jpg",
+    "recipeId": 10,
+    "recipeTitle": "Phở Bò Hà Nội",
+    "recipeImage": "https://example.com/pho.jpg",
+    "commentId": null,
+    "message": "Nguyễn Văn A đã thích công thức \"Phở Bò Hà Nội\" của bạn",
+    "isRead": false,
+    "createdAt": "2025-10-30T10:30:00"
+  },
+  {
+    "id": 2,
+    "type": "COMMENT",
+    "actorName": "Trần Thị B",
+    "message": "Trần Thị B đã bình luận về công thức \"Phở Bò Hà Nội\" của bạn",
+    "isRead": true,
+    "createdAt": "2025-10-30T09:15:00"
+  }
+]
+```
+
+    Responses:
+
+        200 OK: Trả về danh sách thông báo.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 7.2 Lấy thông báo chưa đọc
+
+    Method: GET
+
+    Endpoint: /api/notifications/unread
+
+    Mô tả: Lấy danh sách các thông báo chưa đọc của người dùng hiện tại. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Response Body: Giống như 7.1 nhưng chỉ trả về thông báo có isRead = false.
+
+    Responses:
+
+        200 OK: Trả về danh sách thông báo chưa đọc.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 7.3 Đếm số thông báo chưa đọc
+
+    Method: GET
+
+    Endpoint: /api/notifications/unread/count
+
+    Mô tả: Lấy số lượng thông báo chưa đọc của người dùng hiện tại. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Response Body:
+
+```json
+{
+  "count": 5
+}
+```
+
+    Responses:
+
+        200 OK: Trả về số lượng thông báo chưa đọc.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 7.4 Đánh dấu thông báo đã đọc
+
+    Method: PUT
+
+    Endpoint: /api/notifications/{id}/read
+
+    Mô tả: Đánh dấu một thông báo cụ thể là đã đọc. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        id (path variable, Long): ID của thông báo.
+
+    Responses:
+
+        200 OK: "Đã đánh dấu thông báo là đã đọc"
+
+        404 Not Found: "Không tìm thấy thông báo"
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 7.5 Đánh dấu tất cả đã đọc
+
+    Method: PUT
+
+    Endpoint: /api/notifications/read-all
+
+    Mô tả: Đánh dấu tất cả thông báo chưa đọc là đã đọc. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Response Body:
+
+```json
+{
+  "message": "Đã đánh dấu tất cả thông báo là đã đọc",
+  "count": 5
+}
+```
+
+    Responses:
+
+        200 OK: Đánh dấu thành công, trả về số lượng thông báo đã được đánh dấu.
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 7.6 Xóa thông báo
+
+    Method: DELETE
+
+    Endpoint: /api/notifications/{id}
+
+    Mô tả: Xóa một thông báo cụ thể. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Parameters:
+
+        id (path variable, Long): ID của thông báo cần xóa.
+
+    Responses:
+
+        200 OK: "Đã xóa thông báo"
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+### 7.7 Xóa tất cả thông báo
+
+    Method: DELETE
+
+    Endpoint: /api/notifications
+
+    Mô tả: Xóa tất cả thông báo của người dùng hiện tại. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Responses:
+
+        200 OK: "Đã xóa tất cả thông báo"
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+## 8. Search History API
 
 Endpoint quản lý lịch sử tìm kiếm của người dùng.
 
 Controller: SearchHistoryController
 Base Path: /api/search-history
 
-### 7.1 Lấy lịch sử tìm kiếm
+### 8.1 Lấy lịch sử tìm kiếm
 
     Method: GET
 
@@ -1570,7 +1762,7 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 7.2 Lưu lịch sử tìm kiếm
+### 8.2 Lưu lịch sử tìm kiếm
 
     Method: POST
 
@@ -1609,7 +1801,7 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 7.3 Xóa toàn bộ lịch sử tìm kiếm
+### 8.3 Xóa toàn bộ lịch sử tìm kiếm
 
     Method: DELETE
 
@@ -1627,7 +1819,7 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 7.4 Xóa một query cụ thể
+### 8.4 Xóa một query cụ thể
 
     Method: DELETE
 
@@ -1653,7 +1845,7 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-### 7.5 Thống kê lịch sử tìm kiếm
+### 8.5 Thống kê lịch sử tìm kiếm
 
     Method: GET
 
@@ -1687,9 +1879,9 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-## 8. Database Schema
+## 9. Database Schema
 
-### 8.1 Bảng recipes
+### 9.1 Bảng recipes
 
     id: BIGINT (Primary Key, Auto Increment)
     title: VARCHAR(255) NOT NULL
@@ -1705,7 +1897,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
-### 6.2 Bảng ingredients
+### 9.2 Bảng ingredients
 
     id: BIGINT (Primary Key, Auto Increment)
     recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
@@ -1713,21 +1905,21 @@ Base Path: /api/search-history
     quantity: VARCHAR(50)
     unit: VARCHAR(50)
 
-### 6.3 Bảng recipe_steps
+### 9.3 Bảng recipe_steps
 
     id: BIGINT (Primary Key, Auto Increment)
     recipe_id: BIGINT NOT NULL (Foreign Key -> recipes.id)
     step_number: INT NOT NULL
     title: TEXT NOT NULL
 
-### 6.4 Bảng step_images
+### 9.4 Bảng step_images
 
     id: BIGINT (Primary Key, Auto Increment)
     step_id: BIGINT NOT NULL (Foreign Key -> recipe_steps.id)
     image_url: VARCHAR(500) NOT NULL
     order_number: INT
 
-### 6.5 Bảng recipe_likes
+### 9.5 Bảng recipe_likes
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1735,7 +1927,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_like (user_id, recipe_id)
 
-### 6.6 Bảng recipe_bookmarks
+### 9.6 Bảng recipe_bookmarks
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1743,7 +1935,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_bookmark (user_id, recipe_id)
 
-### 6.7 Bảng recipe_comments
+### 9.7 Bảng recipe_comments
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1753,7 +1945,7 @@ Base Path: /api/search-history
     created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
-### 6.8 Bảng recipe_ratings
+### 9.8 Bảng recipe_ratings
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1763,7 +1955,24 @@ Base Path: /api/search-history
     updated_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     UNIQUE KEY: unique_user_recipe_rating (user_id, recipe_id)
 
-### 8.9 Bảng search_history
+### 9.9 Bảng notifications
+
+    id: BIGINT (Primary Key, Auto Increment)
+    user_id: BIGINT NOT NULL (Foreign Key -> users.id)
+    type: VARCHAR(50) NOT NULL (LIKE, COMMENT, RATING, REPLY, BOOKMARK)
+    actor_id: BIGINT NOT NULL (Foreign Key -> users.id, người thực hiện hành động)
+    recipe_id: BIGINT NULL (Foreign Key -> recipes.id)
+    comment_id: BIGINT NULL (Foreign Key -> recipe_comments.id)
+    message: VARCHAR(500) NOT NULL
+    is_read: BOOLEAN NOT NULL DEFAULT FALSE
+    created_at: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    INDEX: idx_user_id (user_id)
+    INDEX: idx_user_read (user_id, is_read)
+    INDEX: idx_created_at (created_at)
+    INDEX: idx_type (type)
+    INDEX: idx_user_created (user_id, created_at DESC)
+
+### 9.10 Bảng search_history
 
     id: BIGINT (Primary Key, Auto Increment)
     user_id: BIGINT NOT NULL (Foreign Key -> users.id)
@@ -1773,9 +1982,9 @@ Base Path: /api/search-history
     INDEX: idx_searched_at (searched_at)
     INDEX: idx_user_searched (user_id, searched_at DESC)
 
-## 9. Notes
+## 10. Notes
 
-### 9.1 Authentication
+### 10.1 Authentication
 
     Public Endpoints: Các endpoint đánh dấu là "Public" có thể truy cập mà không cần JWT token.
     
@@ -1783,7 +1992,7 @@ Base Path: /api/search-history
     
         Authorization: Bearer <your_jwt_token>
 
-### 9.2 JWT Token
+### 10.2 JWT Token
 
     Token có thời hạn 10 giờ kể từ khi đăng nhập.
     
@@ -1791,7 +2000,7 @@ Base Path: /api/search-history
     
     Khi token hết hạn, cần đăng nhập lại để lấy token mới.
 
-### 9.3 Cascade Delete
+### 10.3 Cascade Delete
 
     Khi xóa recipe, tất cả ingredients, steps, step_images, recipe_likes, recipe_bookmarks, recipe_comments và recipe_ratings liên quan sẽ tự động bị xóa.
     
@@ -1802,8 +2011,12 @@ Base Path: /api/search-history
     Khi xóa user, tất cả search_history của user đó sẽ tự động bị xóa (CASCADE DELETE).
     
     Khi xóa comment, tất cả replies (comments con) sẽ tự động bị xóa (cascade delete).
+    
+    Khi xóa user, tất cả notifications liên quan (cả nhận và gửi) sẽ tự động bị xóa (CASCADE DELETE).
+    
+    Khi xóa recipe hoặc comment, tất cả notifications liên quan sẽ tự động bị xóa (CASCADE DELETE).
 
-### 9.4 Data Relationships
+### 10.4 Data Relationships
 
     1 User có nhiều Recipes (One-to-Many)
     
@@ -1816,6 +2029,10 @@ Base Path: /api/search-history
     1 User có nhiều Recipe Ratings (One-to-Many)
     
     1 User có nhiều Search History entries (One-to-Many)
+    
+    1 User nhận nhiều Notifications (One-to-Many)
+    
+    1 User (actor) tạo nhiều Notifications (One-to-Many)
     
     1 Recipe có nhiều Ingredients (One-to-Many)
     
@@ -1832,8 +2049,12 @@ Base Path: /api/search-history
     1 Step có nhiều Images (One-to-Many)
     
     1 Comment có nhiều Replies/Comments con (One-to-Many, self-referencing)
+    
+    1 Recipe có nhiều Notifications (One-to-Many)
+    
+    1 Comment có nhiều Notifications (One-to-Many)
 
-### 9.5 Recipe Response Fields
+### 10.5 Recipe Response Fields
 
     likesCount: Tổng số lượt like của công thức.
     
@@ -1853,7 +2074,7 @@ Base Path: /api/search-history
     
     Các endpoint public (không cần authentication) vẫn trả về thông tin like, bookmark và rating, nhưng isLikedByCurrentUser, isBookmarkedByCurrentUser và userRating sẽ luôn là false/null.
 
-### 9.6 Rating System
+### 10.6 Rating System
 
     Rating phải từ 1 đến 5 sao.
     
@@ -1863,7 +2084,7 @@ Base Path: /api/search-history
     
     Rating distribution cho biết số lượng đánh giá cho mỗi mức sao (1-5).
 
-### 9.7 Comment System
+### 10.7 Comment System
 
     Comments hỗ trợ nested replies (bình luận có thể trả lời bình luận khác).
     
@@ -1875,7 +2096,41 @@ Base Path: /api/search-history
     
     Chỉ người tạo bình luận mới có quyền sửa/xóa bình luận đó.
 
-### 9.8 Search History System
+### 10.8 Notification System
+
+    Thông báo tự động được tạo khi:
+        - Có người like công thức của bạn
+        - Có người comment công thức của bạn
+        - Có người bookmark/lưu công thức của bạn
+        - Có người rate công thức của bạn
+        - Có người reply comment của bạn (tính năng này cần tích hợp thêm vào CommentService)
+    
+    Không tạo thông báo nếu:
+        - User tự thực hiện hành động trên công thức/comment của chính mình
+        - Đã có thông báo chưa đọc giống hệt (để tránh spam)
+    
+    Notification types:
+        - LIKE: Thích công thức
+        - COMMENT: Bình luận công thức
+        - RATING: Đánh giá công thức
+        - REPLY: Trả lời bình luận
+        - BOOKMARK: Lưu công thức
+    
+    Thông báo bao gồm thông tin:
+        - Actor (người thực hiện): name, avatar
+        - Recipe (công thức liên quan): title, image
+        - Message: Nội dung mô tả thông báo
+        - isRead: Trạng thái đã đọc/chưa đọc
+        - createdAt: Thời gian tạo
+    
+    API cho phép:
+        - Lấy tất cả thông báo
+        - Lấy chỉ thông báo chưa đọc
+        - Đếm số thông báo chưa đọc
+        - Đánh dấu đã đọc (1 hoặc tất cả)
+        - Xóa thông báo (1 hoặc tất cả)
+
+### 10.9 Search History System
 
     Lịch sử tìm kiếm tự động được lưu khi user gọi API /api/recipes/search?title=xxx
     

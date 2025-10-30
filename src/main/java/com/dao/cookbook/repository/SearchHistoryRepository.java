@@ -24,9 +24,10 @@ public interface SearchHistoryRepository extends JpaRepository<SearchHistoryEnti
      * Find recent unique search queries for a user (no duplicates).
      * This returns distinct search queries ordered by the most recent search.
      */
-    @Query("SELECT DISTINCT sh.searchQuery FROM SearchHistoryEntity sh " +
+    @Query("SELECT sh.searchQuery FROM SearchHistoryEntity sh " +
            "WHERE sh.userId = :userId " +
-           "ORDER BY sh.searchedAt DESC")
+           "GROUP BY sh.searchQuery " +
+           "ORDER BY MAX(sh.searchedAt) DESC")
     List<String> findDistinctSearchQueriesByUserId(@Param("userId") Long userId);
     
     /**

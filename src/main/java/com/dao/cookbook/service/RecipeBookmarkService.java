@@ -17,11 +17,14 @@ public class RecipeBookmarkService {
     
     private final RecipeBookmarkRepository bookmarkRepository;
     private final RecipeRepository recipeRepository;
+    private final NotificationService notificationService;
     
     public RecipeBookmarkService(RecipeBookmarkRepository bookmarkRepository, 
-                                RecipeRepository recipeRepository) {
+                                RecipeRepository recipeRepository,
+                                NotificationService notificationService) {
         this.bookmarkRepository = bookmarkRepository;
         this.recipeRepository = recipeRepository;
+        this.notificationService = notificationService;
     }
     
     /**
@@ -48,6 +51,13 @@ public class RecipeBookmarkService {
         // Increment bookmarks count
         recipe.setBookmarksCount(recipe.getBookmarksCount() == null ? 1 : recipe.getBookmarksCount() + 1);
         recipeRepository.save(recipe);
+        
+        // Create notification
+        try {
+            notificationService.createBookmarkNotification(recipeId, userId);
+        } catch (Exception e) {
+            System.err.println("Failed to create bookmark notification: " + e.getMessage());
+        }
         
         return true;
     }

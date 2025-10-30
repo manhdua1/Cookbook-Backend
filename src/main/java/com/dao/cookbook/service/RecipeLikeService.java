@@ -17,11 +17,14 @@ public class RecipeLikeService {
 
     private final RecipeLikeRepository recipeLikeRepository;
     private final RecipeRepository recipeRepository;
+    private final NotificationService notificationService;
 
     public RecipeLikeService(RecipeLikeRepository recipeLikeRepository,
-                            RecipeRepository recipeRepository) {
+                            RecipeRepository recipeRepository,
+                            NotificationService notificationService) {
         this.recipeLikeRepository = recipeLikeRepository;
         this.recipeRepository = recipeRepository;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -51,6 +54,14 @@ public class RecipeLikeService {
         // Update likes count
         recipe.setLikesCount(recipe.getLikesCount() + 1);
         recipeRepository.save(recipe);
+
+        // Create notification
+        try {
+            notificationService.createLikeNotification(recipeId, userId);
+        } catch (Exception e) {
+            // Log but don't fail the like operation
+            System.err.println("Failed to create like notification: " + e.getMessage());
+        }
 
         return true;
     }
