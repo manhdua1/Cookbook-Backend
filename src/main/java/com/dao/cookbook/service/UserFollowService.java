@@ -21,6 +21,7 @@ public class UserFollowService {
     private UserRepository userRepository;
 
     @Autowired
+    @org.springframework.context.annotation.Lazy
     private NotificationService notificationService;
 
     /**

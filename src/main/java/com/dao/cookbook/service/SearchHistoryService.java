@@ -83,4 +83,27 @@ public class SearchHistoryService {
     public long getUserSearchCount(Long userId) {
         return searchHistoryRepository.countByUserId(userId);
     }
+    
+    /**
+     * Get trending search keywords across all users.
+     * Returns list of [searchQuery, searchCount] arrays.
+     */
+    public List<Object[]> getTrendingKeywords(int limit) {
+        List<Object[]> allTrending = searchHistoryRepository.findTrendingSearchKeywords();
+        return allTrending.stream()
+                .limit(limit)
+                .toList();
+    }
+    
+    /**
+     * Get trending search keywords within last N days.
+     * Returns list of [searchQuery, searchCount] arrays.
+     */
+    public List<Object[]> getTrendingKeywordsInDays(int days, int limit) {
+        java.time.LocalDateTime cutoffDate = java.time.LocalDateTime.now().minusDays(days);
+        List<Object[]> allTrending = searchHistoryRepository.findTrendingSearchKeywordsInDays(cutoffDate);
+        return allTrending.stream()
+                .limit(limit)
+                .toList();
+    }
 }

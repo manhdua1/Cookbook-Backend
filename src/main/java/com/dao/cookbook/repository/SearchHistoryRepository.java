@@ -49,4 +49,25 @@ public interface SearchHistoryRepository extends JpaRepository<SearchHistoryEnti
      * Count total searches by user.
      */
     long countByUserId(Long userId);
+    
+    /**
+     * Get trending search keywords across all users.
+     * Returns the most frequently searched queries with their counts.
+     */
+    @Query("SELECT sh.searchQuery, COUNT(sh.searchQuery) as searchCount " +
+           "FROM SearchHistoryEntity sh " +
+           "GROUP BY sh.searchQuery " +
+           "ORDER BY searchCount DESC")
+    List<Object[]> findTrendingSearchKeywords();
+    
+    /**
+     * Get trending search keywords within a time period (last N days).
+     * Using JPQL with CURRENT_TIMESTAMP to avoid MySQL syntax checker warnings.
+     */
+    @Query("SELECT sh.searchQuery, COUNT(sh.searchQuery) as searchCount " +
+           "FROM SearchHistoryEntity sh " +
+           "WHERE sh.searchedAt >= :cutoffDate " +
+           "GROUP BY sh.searchQuery " +
+           "ORDER BY searchCount DESC")
+    List<Object[]> findTrendingSearchKeywordsInDays(@Param("cutoffDate") java.time.LocalDateTime cutoffDate);
 }

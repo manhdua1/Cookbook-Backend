@@ -4,9 +4,11 @@ import com.dao.cookbook.dto.response.UserResponseDTO;
 import com.dao.cookbook.entity.UserEntity;
 import com.dao.cookbook.mapper.UserMapper;
 import com.dao.cookbook.service.UserFollowService;
+import com.dao.cookbook.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -24,14 +26,33 @@ public class UserFollowController {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private UserService userService;
+
+    /**
+     * Get current authenticated user ID from security context.
+     */
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("Người dùng chưa đăng nhập");
+        }
+        
+        String email = authentication.getName();
+        UserResponseDTO user = userService.getUserByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        
+        return user.getId();
+    }
+
     /**
      * Follow a user
      * POST /api/users/{userId}/follow
      */
     @PostMapping("/{userId}/follow")
-    public ResponseEntity<?> followUser(@PathVariable Long userId, Authentication authentication) {
+    public ResponseEntity<?> followUser(@PathVariable Long userId) {
         try {
-            Long currentUserId = Long.parseLong(authentication.getName());
+            Long currentUserId = getCurrentUserId();
             userFollowService.followUser(currentUserId, userId);
             
             Map<String, String> response = new HashMap<>();
@@ -49,9 +70,9 @@ public class UserFollowController {
      * DELETE /api/users/{userId}/follow
      */
     @DeleteMapping("/{userId}/follow")
-    public ResponseEntity<?> unfollowUser(@PathVariable Long userId, Authentication authentication) {
+    public ResponseEntity<?> unfollowUser(@PathVariable Long userId) {
         try {
-            Long currentUserId = Long.parseLong(authentication.getName());
+            Long currentUserId = getCurrentUserId();
             userFollowService.unfollowUser(currentUserId, userId);
             
             Map<String, String> response = new HashMap<>();
@@ -95,9 +116,8 @@ public class UserFollowController {
      * GET /api/users/{userId}/is-following
      */
     @GetMapping("/{userId}/is-following")
-    public ResponseEntity<Map<String, Boolean>> isFollowing(@PathVariable Long userId, 
-                                                            Authentication authentication) {
-        Long currentUserId = Long.parseLong(authentication.getName());
+    public ResponseEntity<Map<String, Boolean>> isFollowing(@PathVariable Long userId) {
+        Long currentUserId = getCurrentUserId();
         boolean isFollowing = userFollowService.isFollowing(currentUserId, userId);
         
         Map<String, Boolean> response = new HashMap<>();

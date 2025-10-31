@@ -2253,6 +2253,101 @@ Base Path: /api/search-history
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
+### 9.6 Lấy từ khóa tìm kiếm thịnh hành
+
+    Method: GET
+
+    Endpoint: /api/search-history/trending
+
+    Mô tả: Lấy danh sách các từ khóa được tìm kiếm nhiều nhất trên toàn hệ thống. Có thể lọc theo thời gian (30 ngày gần nhất mặc định) hoặc lấy tất cả. (Public - Không cần Authentication)
+
+    Query Parameters:
+
+        limit (Integer, optional): Số lượng kết quả tối đa (mặc định: 10).
+        days (Integer, optional): Lấy từ khóa trong N ngày gần nhất. 0 = tất cả thời gian (mặc định: 30).
+
+    Examples: 
+        /api/search-history/trending
+        /api/search-history/trending?limit=20
+        /api/search-history/trending?days=7&limit=15
+        /api/search-history/trending?days=0&limit=50  (all time)
+
+    Response Body:
+
+```json
+{
+  "period": "30 ngày gần nhất",
+  "total": 10,
+  "trending": [
+    {
+      "keyword": "phở bò",
+      "searchCount": 156
+    },
+    {
+      "keyword": "cơm chiên",
+      "searchCount": 142
+    },
+    {
+      "keyword": "bún chả",
+      "searchCount": 98
+    },
+    {
+      "keyword": "bánh mì",
+      "searchCount": 87
+    },
+    {
+      "keyword": "gỏi cuốn",
+      "searchCount": 76
+    },
+    {
+      "keyword": "canh chua",
+      "searchCount": 65
+    },
+    {
+      "keyword": "bún bò huế",
+      "searchCount": 54
+    },
+    {
+      "keyword": "bánh xèo",
+      "searchCount": 43
+    },
+    {
+      "keyword": "thịt kho tàu",
+      "searchCount": 39
+    },
+    {
+      "keyword": "gà rán",
+      "searchCount": 32
+    }
+  ]
+}
+```
+
+    Response Body (days=0 - all time):
+
+```json
+{
+  "period": "Tất cả thời gian",
+  "total": 10,
+  "trending": [
+    {
+      "keyword": "phở bò",
+      "searchCount": 1245
+    },
+    {
+      "keyword": "cơm chiên",
+      "searchCount": 1108
+    }
+  ]
+}
+```
+
+    Responses:
+
+        200 OK: Trả về danh sách từ khóa thịnh hành.
+
+        500 Internal Server Error: Lỗi khi truy vấn dữ liệu.
+
 ## 10. Database Schema
 
 ### 10.1 Bảng users

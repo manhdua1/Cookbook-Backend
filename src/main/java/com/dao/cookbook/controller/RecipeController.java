@@ -48,8 +48,8 @@ public class RecipeController {
      * GET /api/recipes/following-feed
      */
     @GetMapping("/following-feed")
-    public ResponseEntity<List<RecipeResponseDTO>> getFollowingFeed(Authentication authentication) {
-        Long currentUserId = Long.parseLong(authentication.getName());
+    public ResponseEntity<List<RecipeResponseDTO>> getFollowingFeed() {
+        Long currentUserId = getCurrentUserId();
         List<RecipeResponseDTO> feed = recipeService.getFollowingFeed(currentUserId);
         return ResponseEntity.ok(feed);
     }
@@ -60,9 +60,8 @@ public class RecipeController {
      */
     @GetMapping("/recently-viewed")
     public ResponseEntity<List<RecipeResponseDTO>> getRecentlyViewedRecipes(
-            @RequestParam(required = false) Integer limit,
-            Authentication authentication) {
-        Long currentUserId = Long.parseLong(authentication.getName());
+            @RequestParam(required = false) Integer limit) {
+        Long currentUserId = getCurrentUserId();
         List<RecipeResponseDTO> recipes = viewHistoryService.getRecentlyViewedRecipes(currentUserId, limit);
         return ResponseEntity.ok(recipes);
     }
@@ -72,8 +71,8 @@ public class RecipeController {
      * DELETE /api/recipes/recently-viewed
      */
     @DeleteMapping("/recently-viewed")
-    public ResponseEntity<Map<String, String>> clearViewHistory(Authentication authentication) {
-        Long currentUserId = Long.parseLong(authentication.getName());
+    public ResponseEntity<Map<String, String>> clearViewHistory() {
+        Long currentUserId = getCurrentUserId();
         viewHistoryService.clearUserViewHistory(currentUserId);
         
         Map<String, String> response = new HashMap<>();
@@ -87,9 +86,8 @@ public class RecipeController {
      */
     @DeleteMapping("/recently-viewed/{recipeId}")
     public ResponseEntity<Map<String, String>> removeFromViewHistory(
-            @PathVariable Long recipeId,
-            Authentication authentication) {
-        Long currentUserId = Long.parseLong(authentication.getName());
+            @PathVariable Long recipeId) {
+        Long currentUserId = getCurrentUserId();
         viewHistoryService.removeRecipeFromHistory(currentUserId, recipeId);
         
         Map<String, String> response = new HashMap<>();

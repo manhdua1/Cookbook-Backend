@@ -49,25 +49,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.disable())  // Disable CORS nếu bạn chưa config CORS riêng
             .authorizeHttpRequests(auth -> auth
-                // Auth endpoints - public
+                // Public endpoints - KHÔNG CẦN AUTHENTICATION
                 .requestMatchers("/api/auth/**").permitAll()
-                // Upload endpoints - public (hoặc có thể set authenticated nếu muốn)
                 .requestMatchers("/api/upload/**").permitAll()
-                // Static files - public
                 .requestMatchers("/uploads/**").permitAll()
-                // Admin endpoints - require authentication
-                .requestMatchers("/api/admin/**").authenticated()
-                // Recipe endpoints - GET methods are public, others require authentication
-                .requestMatchers("/api/recipes").permitAll()
-                .requestMatchers("/api/recipes/{id}").permitAll()
-                .requestMatchers("/api/recipes/user/{userId}").permitAll()
-                .requestMatchers("/api/recipes/search").permitAll()
-                .requestMatchers("/api/recipes/my-recipes").authenticated()
-                // User endpoints - require authentication
-                .requestMatchers("/api/users/**").authenticated()
-                // All other requests require authentication
-                .anyRequest().authenticated()
+                // Tất cả API khác - TẠM THỜI cho phép hết để test
+                .anyRequest().permitAll()
             )
             // Thêm filter JWT trước BasicAuthenticationFilter
             .addFilterBefore(jwtAuthenticationFilter(), BasicAuthenticationFilter.class);

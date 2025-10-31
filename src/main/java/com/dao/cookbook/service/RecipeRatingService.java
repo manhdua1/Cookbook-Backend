@@ -20,11 +20,14 @@ public class RecipeRatingService {
     
     private final RecipeRatingRepository ratingRepository;
     private final RecipeRepository recipeRepository;
+    private final NotificationService notificationService;
     
     public RecipeRatingService(RecipeRatingRepository ratingRepository,
-                              RecipeRepository recipeRepository) {
+                              RecipeRepository recipeRepository,
+                              @org.springframework.context.annotation.Lazy NotificationService notificationService) {
         this.ratingRepository = ratingRepository;
         this.recipeRepository = recipeRepository;
+        this.notificationService = notificationService;
     }
     
     /**
@@ -63,6 +66,16 @@ public class RecipeRatingService {
         
         // Update recipe's average rating and ratings count
         updateRecipeRatingStats(recipe, isNewRating);
+        
+        // Create notification for recipe owner (only for new ratings, not updates)
+        if (isNewRating) {
+            try {
+                notificationService.createRatingNotification(recipeId, userId, ratingValue);
+            } catch (Exception e) {
+                // Don't fail the rating operation if notification fails
+                System.err.println("Failed to create rating notification: " + e.getMessage());
+            }
+        }
         
         return savedRating;
     }

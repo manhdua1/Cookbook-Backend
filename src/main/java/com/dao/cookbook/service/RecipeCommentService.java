@@ -17,11 +17,14 @@ public class RecipeCommentService {
     
     private final RecipeCommentRepository commentRepository;
     private final RecipeRepository recipeRepository;
+    private final NotificationService notificationService;
     
     public RecipeCommentService(RecipeCommentRepository commentRepository,
-                               RecipeRepository recipeRepository) {
+                               RecipeRepository recipeRepository,
+                               @org.springframework.context.annotation.Lazy NotificationService notificationService) {
         this.commentRepository = commentRepository;
         this.recipeRepository = recipeRepository;
+        this.notificationService = notificationService;
     }
     
     /**
@@ -52,6 +55,29 @@ public class RecipeCommentService {
         if (parentCommentId == null) {
             recipe.setCommentsCount(recipe.getCommentsCount() == null ? 1 : recipe.getCommentsCount() + 1);
             recipeRepository.save(recipe);
+        }
+        
+        // Create notification
+        try {
+            if (parentCommentId == null) {
+                // Notification for recipe owner when someone comments
+                notificationService.createCommentNotification(recipeId, userId, savedComment.getId());
+            } else {
+                // Notification for parent comment owner when someone replies
+                RecipeCommentEntity parentComment = commentRepository.findById(parentCommentId).orElse(null);
+                if (parentComment != null) {
+                    notificationService.createReplyNotification(
+                        parentComment.getUserId(), 
+                        userId, 
+                        recipeId, 
+                        savedComment.getId(), 
+                        recipe.getTitle()
+                    );
+                }
+            }
+        } catch (Exception e) {
+            // Don't fail the comment operation if notification fails
+            System.err.println("Failed to create comment notification: " + e.getMessage());
         }
         
         return savedComment;

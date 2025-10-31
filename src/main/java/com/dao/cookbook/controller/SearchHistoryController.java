@@ -194,4 +194,52 @@ public class SearchHistoryController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
+
+    @Operation(
+        summary = "Lấy từ khóa tìm kiếm thịnh hành", 
+        description = "Lấy danh sách các từ khóa được tìm kiếm nhiều nhất trên toàn hệ thống. " +
+                     "Có thể lọc theo thời gian (30 ngày gần nhất mặc định) hoặc lấy tất cả."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lấy từ khóa thành công")
+    })
+    @GetMapping("/trending")
+    public ResponseEntity<?> getTrendingKeywords(
+            @Parameter(description = "Số lượng kết quả tối đa", example = "10")
+            @RequestParam(required = false, defaultValue = "10") Integer limit,
+            @Parameter(description = "Lấy từ khóa trong N ngày gần nhất (0 = tất cả thời gian)", example = "30")
+            @RequestParam(required = false, defaultValue = "30") Integer days) {
+        try {
+            List<Object[]> trendingData;
+            
+            if (days > 0) {
+                // Lấy trending trong khoảng thời gian
+                trendingData = searchHistoryService.getTrendingKeywordsInDays(days, limit);
+            } else {
+                // Lấy trending tất cả thời gian
+                trendingData = searchHistoryService.getTrendingKeywords(limit);
+            }
+            
+            // Transform data to readable format
+            List<Map<String, Object>> trending = trendingData.stream()
+                    .map(row -> {
+                        Map<String, Object> item = new HashMap<>();
+                        item.put("keyword", row[0]);
+                        item.put("searchCount", row[1]);
+                        return item;
+                    })
+                    .toList();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("period", days > 0 ? days + " ngày gần nhất" : "Tất cả thời gian");
+            response.put("total", trending.size());
+            response.put("trending", trending);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Không thể lấy từ khóa thịnh hành: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
 }
