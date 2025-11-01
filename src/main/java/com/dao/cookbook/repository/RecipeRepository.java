@@ -38,4 +38,37 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
      */
     @Query("SELECT r FROM RecipeEntity r WHERE r.userId IN :userIds ORDER BY r.createdAt DESC")
     List<RecipeEntity> findByUserIdInOrderByCreatedAtDesc(@Param("userIds") List<Long> userIds);
+    
+    /**
+     * Find recipes that contain specific ingredients.
+     * 
+     * @param ingredients list of ingredient names to search for
+     * @param count number of ingredients to match
+     * @return list of recipes containing the specified ingredients
+     */
+    @Query("SELECT DISTINCT r FROM RecipeEntity r " +
+           "JOIN r.ingredients i " +
+           "WHERE LOWER(i.name) IN :ingredients " +
+           "GROUP BY r.id " +
+           "HAVING COUNT(DISTINCT i.name) >= :count")
+    List<RecipeEntity> findByIngredientsContaining(
+        @Param("ingredients") List<String> ingredients,
+        @Param("count") long count
+    );
+    
+    /**
+     * Find recipes that do not contain specific ingredients.
+     * 
+     * @param ingredients list of ingredient names to exclude
+     * @return list of recipes not containing the specified ingredients
+     */
+    @Query("SELECT r FROM RecipeEntity r " +
+           "WHERE r.id NOT IN (" +
+           "  SELECT DISTINCT r2.id FROM RecipeEntity r2 " +
+           "  JOIN r2.ingredients i " +
+           "  WHERE LOWER(i.name) IN :ingredients" +
+           ")")
+    List<RecipeEntity> findByIngredientsNotContaining(
+        @Param("ingredients") List<String> ingredients
+    );
 }

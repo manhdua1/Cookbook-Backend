@@ -317,4 +317,81 @@ public class RecipeService {
 
         recipeRepository.delete(recipe);
     }
+
+    /**
+     * Filter recipes by ingredients (with include/exclude filters).
+     * 
+     * @param includeIngredients list of ingredients that must be present
+     * @param excludeIngredients list of ingredients that must not be present
+     * @param currentUserId current user ID for like info (optional)
+     * @return filtered list of recipes
+     */
+    public List<RecipeResponseDTO> filterRecipesByIngredients(
+            List<String> includeIngredients, 
+            List<String> excludeIngredients,
+            Long currentUserId) {
+        
+        List<RecipeEntity> recipes;
+        
+        // Case 1: Only include filter
+        if ((includeIngredients != null && !includeIngredients.isEmpty()) && 
+            (excludeIngredients == null || excludeIngredients.isEmpty())) {
+            
+            // Convert to lowercase for case-insensitive search
+            List<String> lowerInclude = includeIngredients.stream()
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+            
+            recipes = recipeRepository.findByIngredientsContaining(
+                lowerInclude, 
+                lowerInclude.size()
+            );
+        }
+        // Case 2: Only exclude filter
+        else if ((includeIngredients == null || includeIngredients.isEmpty()) && 
+                 (excludeIngredients != null && !excludeIngredients.isEmpty())) {
+            
+            List<String> lowerExclude = excludeIngredients.stream()
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+            
+            recipes = recipeRepository.findByIngredientsNotContaining(lowerExclude);
+        }
+        // Case 3: Both include and exclude filters
+        else if ((includeIngredients != null && !includeIngredients.isEmpty()) && 
+                 (excludeIngredients != null && !excludeIngredients.isEmpty())) {
+            
+            List<String> lowerInclude = includeIngredients.stream()
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+            List<String> lowerExclude = excludeIngredients.stream()
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toList());
+            
+            // First get recipes with required ingredients
+            List<RecipeEntity> includedRecipes = recipeRepository.findByIngredientsContaining(
+                lowerInclude, 
+                lowerInclude.size()
+            );
+            
+            // Then filter out recipes with excluded ingredients
+            recipes = includedRecipes.stream()
+                    .filter(recipe -> {
+                        // Check if recipe contains any excluded ingredient
+                        boolean hasExcludedIngredient = recipe.getIngredients().stream()
+                                .anyMatch(ing -> lowerExclude.contains(ing.getName().toLowerCase()));
+                        return !hasExcludedIngredient;
+                    })
+                    .collect(Collectors.toList());
+        }
+        // Case 4: No filters - return all recipes
+        else {
+            recipes = recipeRepository.findAll();
+        }
+        
+        // Map to response DTOs
+        return recipes.stream()
+                .map(recipe -> recipeMapper.toResponse(recipe, currentUserId))
+                .collect(Collectors.toList());
+    }
 }

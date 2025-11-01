@@ -687,7 +687,145 @@ Base Path: /api/recipes
 
         401 Unauthorized: Người dùng chưa đăng nhập hoặc token không hợp lệ.
 
-### 6.6.1 Tạo công thức với User ID (Admin)
+### 6.6.1 Lọc công thức theo nguyên liệu
+
+    Method: POST
+
+    Endpoint: /api/recipes/filter-by-ingredients
+
+    Mô tả: Tìm kiếm công thức dựa trên nguyên liệu có (include) hoặc không có (exclude). API này cho phép lọc món ăn phù hợp với nguyên liệu có sẵn hoặc loại trừ nguyên liệu không mong muốn (dị ứng, không thích, v.v.). (Public - không cần xác thực)
+
+    Headers:
+
+        Content-Type: application/json
+
+    Request Body:
+
+```json
+{
+  "includeIngredients": ["thịt bò", "hành tây"],
+  "excludeIngredients": ["tôm", "hải sản"]
+}
+```
+
+    Fields:
+
+        includeIngredients (List<String>, optional): Danh sách nguyên liệu phải có trong công thức
+        excludeIngredients (List<String>, optional): Danh sách nguyên liệu không được có trong công thức
+
+    Use Cases:
+
+        Case 1 - Chỉ include: Tìm món có nguyên liệu cụ thể
+
+```json
+{
+  "includeIngredients": ["gà", "sả"]
+}
+```
+
+        Case 2 - Chỉ exclude: Tìm món không chứa nguyên liệu nào đó
+
+```json
+{
+  "excludeIngredients": ["hải sản", "tôm", "mực"]
+}
+```
+
+        Case 3 - Cả include và exclude: Tìm món có nguyên liệu X nhưng không có Y
+
+```json
+{
+  "includeIngredients": ["thịt bò"],
+  "excludeIngredients": ["ớt", "tiêu"]
+}
+```
+
+        Case 4 - Không có filter: Trả về tất cả công thức
+
+```json
+{}
+```
+
+    Responses:
+
+        200 OK: Trả về danh sách công thức phù hợp.
+
+```json
+[
+  {
+    "id": 15,
+    "title": "Bò Xào Hành Tây",
+    "imageUrl": "https://example.com/bo-xao.jpg",
+    "servings": 2,
+    "cookingTime": 30,
+    "userId": 5,
+    "userName": "Nguyễn Văn A",
+    "userAvatar": "https://example.com/avatar.jpg",
+    "ingredients": [
+      {
+        "id": 45,
+        "name": "Thịt bò",
+        "quantity": "300",
+        "unit": "g"
+      },
+      {
+        "id": 46,
+        "name": "Hành tây",
+        "quantity": "1",
+        "unit": "củ"
+      }
+    ],
+    "steps": [...],
+    "createdAt": "2025-01-15T10:30:00",
+    "updatedAt": "2025-01-15T10:30:00"
+  }
+]
+```
+
+        400 Bad Request: Dữ liệu không hợp lệ.
+
+    Examples:
+
+Example 1: Tìm món từ gà (dị ứng hải sản)
+
+```bash
+curl -X POST http://localhost:8080/api/recipes/filter-by-ingredients \
+  -H "Content-Type: application/json" \
+  -d '{
+    "includeIngredients": ["gà"],
+    "excludeIngredients": ["tôm", "cua", "mực", "hải sản"]
+  }'
+```
+
+Example 2: Tìm món chay (không thịt, không hải sản)
+
+```bash
+curl -X POST http://localhost:8080/api/recipes/filter-by-ingredients \
+  -H "Content-Type: application/json" \
+  -d '{
+    "excludeIngredients": ["thịt", "gà", "bò", "heo", "tôm", "cá", "hải sản"]
+  }'
+```
+
+Example 3: Tìm món có thịt bò và khoai tây
+
+```bash
+curl -X POST http://localhost:8080/api/recipes/filter-by-ingredients \
+  -H "Content-Type: application/json" \
+  -d '{
+    "includeIngredients": ["thịt bò", "khoai tây"]
+  }'
+```
+
+    Notes:
+
+        Tìm kiếm không phân biệt chữ hoa/thường (case-insensitive)
+        Khi dùng includeIngredients, công thức phải chứa TẤT CẢ nguyên liệu trong danh sách
+        Khi dùng excludeIngredients, công thức không được chứa BẤT KỲ nguyên liệu nào trong danh sách
+        Có thể dùng cả 2 filter cùng lúc để tìm kiếm chính xác hơn
+        Trả về công thức với thông tin like/bookmark nếu user đã đăng nhập
+
+### 6.6.2 Tạo công thức với User ID (Admin)
 
     Method: POST
 
@@ -1814,7 +1952,136 @@ Base Path: /api/notifications
 
         401 Unauthorized: Người dùng chưa đăng nhập.
 
-## 8. User Follow API
+## 8. AI Chat API
+
+Endpoint sử dụng AI để trả lời câu hỏi về công thức nấu ăn.
+
+Controller: AIController
+Base Path: /api/ai
+
+### 8.1 Chat với AI về công thức nấu ăn
+
+    Method: POST
+
+    Endpoint: /api/ai/chat
+
+    Mô tả: Hỏi AI về cách làm món ăn, nguyên liệu, hoặc bất kỳ câu hỏi nào liên quan đến công thức nấu ăn. AI sẽ tìm kiếm trong database công thức và trả lời dựa trên dữ liệu thực tế. (Public - không cần xác thực)
+
+    Headers:
+
+        Content-Type: application/json
+
+    Request Body:
+
+```json
+{
+  "question": "Cách làm phở bò?"
+}
+```
+
+    Validation Rules:
+
+        question: Bắt buộc, không được để trống
+
+    Response Body:
+
+```json
+{
+  "answer": "Cách làm phở bò:\n\nBước 1: Chuẩn bị nguyên liệu\n- Xương bò: 1kg\n- Thịt bò: 500g\n- Bánh phở: 500g\n- Hành tây: 2 củ\n- Gừng: 50g\n\nBước 2: Ninh nước dùng\nRửa sạch xương bò, chần qua nước sôi. Nướng hành tây và gừng. Cho xương vào nồi, đổ đầy nước, thêm hành gừng đã nướng. Ninh nhỏ lửa 3-4 tiếng.\n\nBước 3: Chuẩn bị thịt\nLuộc thịt bò trong nước dùng đến khi chín. Vớt ra, để nguội rồi thái lát mỏng.\n\nBước 4: Trình bày\nChần bánh phở. Xếp bánh phở vào tô, cho thịt bò lên trên, chan nước dùng nóng. Ăn kèm hành lá, ngò gai, chanh và ớt.",
+  "sources": [
+    {
+      "title": "Phở Bò Hà Nội",
+      "id": 2927
+    },
+    {
+      "title": "Phở Bò Nam Định",
+      "id": 2703
+    }
+  ]
+}
+```
+
+    Responses:
+
+        200 OK: AI trả lời thành công.
+
+            answer: Câu trả lời chi tiết từ AI
+            sources: Danh sách công thức tham khảo (title và id)
+
+        400 Bad Request: Câu hỏi không hợp lệ (trống hoặc null).
+
+```json
+{
+  "error": "Question is required"
+}
+```
+
+        500 Internal Server Error: Lỗi khi gọi AI service.
+
+```json
+{
+  "error": "Failed to get AI response"
+}
+```
+
+### 8.2 Ví dụ sử dụng
+
+Example 1: Hỏi cách làm món cụ thể
+
+```bash
+curl -X POST http://localhost:8080/api/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Cách làm gà rán giòn?"}'
+```
+
+Example 2: Hỏi về nguyên liệu
+
+```bash
+curl -X POST http://localhost:8080/api/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Món nào làm từ bột mì?"}'
+```
+
+Example 3: Hỏi về các bước nấu ăn
+
+```bash
+curl -X POST http://localhost:8080/api/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Các bước làm bánh bông lan?"}'
+```
+
+### 8.3 Lưu ý quan trọng
+
+    Response Time: AI mất khoảng 15-20 giây để xử lý và trả lời. Client app nên hiển thị loading indicator.
+
+    Context: AI chỉ trả lời dựa trên database công thức có sẵn (~4000+ công thức). Nếu không tìm thấy công thức phù hợp, AI sẽ thông báo.
+
+    Language: AI hỗ trợ tiếng Việt. Câu hỏi nên rõ ràng và cụ thể.
+
+    Sources: Luôn kiểm tra sources để biết AI tham khảo công thức nào. Có thể dùng recipeId để lấy chi tiết công thức đầy đủ qua Recipe API.
+
+### 8.4 Kiến trúc AI System
+
+```
+Client App → Spring Boot (8080) → Python AI Service (8001) → Ollama LLM
+                                 → ChromaDB Vector Database
+```
+
+    Spring Boot: API Gateway, xác thực và routing
+    Python AI Service: FastAPI server với RAG (Retrieval-Augmented Generation)
+    ChromaDB: Vector database lưu trữ embeddings của công thức
+    Ollama: Local LLM (llama3.2:3b) để generate câu trả lời
+    Embedding Model: mxbai-embed-large để tạo vector embeddings
+
+### 8.5 Technology Stack
+
+    Backend: Spring Boot 3.x
+    AI Service: Python FastAPI, LangChain
+    Vector DB: ChromaDB
+    LLM: Ollama (llama3.2:3b - 3 billion parameters)
+    Embeddings: mxbai-embed-large (669MB)
+
+## 9. User Follow API
 
 Endpoint quản lý chức năng theo dõi (follow) người dùng.
 
@@ -1892,7 +2159,84 @@ Base Path: /api/users
 }
 ```
 
-### 8.3 Lấy danh sách người đang theo dõi
+### 9.1 Follow một người dùng
+
+    Method: POST
+
+    Endpoint: /api/users/{userId}/follow
+
+    Mô tả: Lấy danh sách những người mà user đang theo dõi. (Public)
+
+    Path Parameters:
+
+        userId (Long): ID của người dùng.
+
+    Responses:
+
+        200 OK: Trả về danh sách user.
+
+```json
+[
+  {
+    "id": 2,
+    "email": "user2@example.com",
+    "fullName": "Nguyen Van B",
+    "avatarUrl": "https://example.com/avatar2.jpg",
+    "bio": "Food lover",
+    "hometown": "Hanoi",
+    "provider": "local",
+    "followersCount": 50,
+    "followingCount": 30
+  },
+  {
+    "id": 3,
+    "email": "user3@example.com",
+    "fullName": "Tran Thi C",
+    "avatarUrl": null,
+    "bio": null,
+    "hometown": "HCM",
+    "provider": "google",
+    "followersCount": 120,
+    "followingCount": 85
+  }
+]
+```
+
+### 9.2 Unfollow một người dùng
+
+    Method: DELETE
+
+    Endpoint: /api/users/{userId}/follow
+
+    Mô tả: Hủy theo dõi một người dùng. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+
+    Path Parameters:
+
+        userId (Long): ID của người dùng muốn hủy theo dõi.
+
+    Responses:
+
+        200 OK: Hủy theo dõi thành công.
+
+```json
+{
+  "message": "Successfully unfollowed user"
+}
+```
+
+        400 Bad Request: Not following this user.
+
+```json
+{
+  "error": "Not following this user"
+}
+```
+
+### 9.3 Lấy danh sách người đang theo dõi
 
     Method: GET
 
@@ -1935,7 +2279,7 @@ Base Path: /api/users
 ]
 ```
 
-### 8.4 Lấy danh sách người theo dõi (followers)
+### 9.4 Lấy danh sách người theo dõi (followers)
 
     Method: GET
 
@@ -1967,7 +2311,7 @@ Base Path: /api/users
 ]
 ```
 
-### 8.5 Kiểm tra xem có đang follow không
+### 9.5 Kiểm tra xem có đang follow không
 
     Method: GET
 
@@ -1993,7 +2337,7 @@ Base Path: /api/users
 }
 ```
 
-### 8.6 Lấy thống kê follow
+### 9.6 Lấy thống kê follow
 
     Method: GET
 

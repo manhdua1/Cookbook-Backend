@@ -536,4 +536,34 @@ public class RecipeController {
                     .body("Lỗi tạo công thức: " + e.getMessage());
         }
     }
+
+    /**
+     * Filter recipes by ingredients (include/exclude).
+     * POST /api/recipes/filter-by-ingredients
+     * 
+     * Example request body:
+     * {
+     *   "includeIngredients": ["thịt bò", "hành tây"],
+     *   "excludeIngredients": ["tôm", "hải sản"]
+     * }
+     */
+    @PostMapping("/filter-by-ingredients")
+    public ResponseEntity<List<RecipeResponseDTO>> filterRecipesByIngredients(
+            @RequestBody com.dao.cookbook.dto.request.RecipeFilterRequestDTO filterRequest) {
+        try {
+            Long currentUserId = getCurrentUserIdOrNull();
+            
+            List<RecipeResponseDTO> recipes = recipeService.filterRecipesByIngredients(
+                    filterRequest.getIncludeIngredients(),
+                    filterRequest.getExcludeIngredients(),
+                    currentUserId
+            );
+            
+            return ResponseEntity.ok(recipes);
+        } catch (RuntimeException e) {
+            System.err.println("Error filtering recipes: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
 }
