@@ -413,6 +413,213 @@ Base Path: /api/auth
 
         401 Unauthorized: Thông tin đăng nhập không hợp lệ (sai email hoặc mật khẩu).
 
+### 6.4 Quên mật khẩu - Gửi OTP
+
+    Method: POST
+
+    Endpoint: /api/auth/forgot-password
+
+    Mô tả: Gửi mã OTP (6 số) đến email để khôi phục mật khẩu. Email phải tồn tại trong hệ thống.
+
+    Headers:
+
+        Content-Type: application/json
+
+    Request Body:
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+    Validation Rules:
+
+        email: Bắt buộc, phải đúng định dạng email
+
+    Responses:
+
+        200 OK: OTP đã được gửi thành công.
+
+```text
+"OTP khôi phục mật khẩu đã được gửi đến email"
+```
+
+        404 Not Found: Email không tồn tại trong hệ thống.
+
+```text
+"Email không tồn tại trong hệ thống"
+```
+
+        500 Internal Server Error: Lỗi khi gửi email.
+
+    Example:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com"}'
+```
+
+### 6.5 Đặt lại mật khẩu (Reset Password)
+
+    Method: POST
+
+    Endpoint: /api/auth/reset-password
+
+    Mô tả: Xác thực OTP và đặt lại mật khẩu mới cho tài khoản. OTP phải được gửi từ endpoint forgot-password trước đó.
+
+    Headers:
+
+        Content-Type: application/json
+
+    Request Body:
+
+```json
+{
+  "email": "user@example.com",
+  "otp": "123456",
+  "newPassword": "NewSecurePassword123"
+}
+```
+
+    Validation Rules:
+
+        email: Bắt buộc, phải đúng định dạng email
+        otp: Bắt buộc, mã OTP 6 số đã được gửi đến email
+        newPassword: Bắt buộc, mật khẩu mới (nên có ít nhất 8 ký tự)
+
+    Responses:
+
+        200 OK: Đặt lại mật khẩu thành công.
+
+```text
+"Đặt lại mật khẩu thành công"
+```
+
+        400 Bad Request: OTP không hợp lệ hoặc đã hết hạn.
+
+```text
+"OTP không hợp lệ hoặc đã hết hạn"
+```
+
+        404 Not Found: Email không tồn tại.
+
+```text
+"Không tìm thấy người dùng"
+```
+
+    Example:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "otp": "123456",
+    "newPassword": "NewPassword123"
+  }'
+```
+
+### 6.6 Đổi mật khẩu (Change Password)
+
+    Method: POST
+
+    Endpoint: /api/auth/change-password
+
+    Mô tả: Đổi mật khẩu cho tài khoản đã đăng nhập. Yêu cầu xác thực mật khẩu cũ. (Requires Authentication)
+
+    Headers:
+
+        Authorization: Bearer <JWT_TOKEN>
+        Content-Type: application/json
+
+    Request Body:
+
+```json
+{
+  "oldPassword": "OldPassword123",
+  "newPassword": "NewPassword456"
+}
+```
+
+    Validation Rules:
+
+        oldPassword: Bắt buộc, phải khớp với mật khẩu hiện tại
+        newPassword: Bắt buộc, mật khẩu mới (nên có ít nhất 8 ký tự)
+
+    Responses:
+
+        200 OK: Đổi mật khẩu thành công.
+
+```text
+"Đổi mật khẩu thành công"
+```
+
+        400 Bad Request: Mật khẩu cũ không đúng.
+
+```text
+"Mật khẩu cũ không đúng"
+```
+
+        401 Unauthorized: Người dùng chưa đăng nhập.
+
+```text
+"Người dùng chưa đăng nhập"
+```
+
+    Example:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/change-password \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "oldPassword": "OldPassword123",
+    "newPassword": "NewPassword456"
+  }'
+```
+
+### 6.7 Flow Quên Mật Khẩu
+
+    Bước 1: User nhập email → POST /api/auth/forgot-password
+
+        Hệ thống kiểm tra email tồn tại
+        Tạo OTP 6 số và lưu vào cache
+        Gửi OTP qua email
+
+    Bước 2: User nhận OTP qua email (có hiệu lực 5 phút)
+
+    Bước 3: User nhập email, OTP và mật khẩu mới → POST /api/auth/reset-password
+
+        Hệ thống xác thực OTP
+        OTP bị xóa sau khi sử dụng
+        Mật khẩu được mã hóa và cập nhật
+
+    Bước 4: User đăng nhập với mật khẩu mới → POST /api/auth/login
+
+### 6.8 Flow Đổi Mật Khẩu (Đã Đăng Nhập)
+
+    Bước 1: User đã đăng nhập (có JWT token)
+
+    Bước 2: User nhập mật khẩu cũ và mật khẩu mới → POST /api/auth/change-password
+
+        Hệ thống xác thực JWT token
+        Kiểm tra mật khẩu cũ có đúng không
+        Mã hóa và cập nhật mật khẩu mới
+
+    Bước 3: Token hiện tại vẫn hợp lệ, user tiếp tục sử dụng
+
+### 6.9 So sánh: Forgot Password vs Change Password
+
+| Tính năng | Forgot Password | Change Password |
+|-----------|----------------|-----------------|
+| Yêu cầu đăng nhập | Không | Có (JWT token) |
+| Xác thực | OTP qua email | Mật khẩu cũ |
+| Use case | Quên mật khẩu | Đổi mật khẩu định kỳ |
+| Bảo mật | OTP 6 số, timeout 5 phút | Kiểm tra mật khẩu cũ |
+| OTP prefix | "forgot_" + email | Không dùng OTP |
+
 ## 4. Recipe API
 
 Endpoint quản lý các công thức nấu ăn.

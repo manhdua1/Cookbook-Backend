@@ -144,4 +144,35 @@ public class UserService implements org.springframework.security.core.userdetail
                 .roles("USER") // default role
                 .build();
     }
+
+    /**
+     * Đổi mật khẩu (yêu cầu xác thực mật khẩu cũ)
+     * Dùng cho user đã đăng nhập
+     */
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        // Kiểm tra mật khẩu cũ có đúng không
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Mật khẩu cũ không đúng");
+        }
+
+        // Mã hóa và cập nhật mật khẩu mới
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    /**
+     * Reset mật khẩu (không cần mật khẩu cũ)
+     * Dùng cho chức năng quên mật khẩu với OTP
+     */
+    public void resetPassword(String email, String newPassword) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        // Mã hóa và cập nhật mật khẩu mới
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }

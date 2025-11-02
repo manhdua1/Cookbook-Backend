@@ -75,4 +75,94 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Thông tin đăng nhập không hợp lệ");
         }
     }
+
+    /**
+     * Bước 1: Gửi OTP quên mật khẩu
+     * POST /api/auth/forgot-password
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody com.dao.cookbook.dto.request.ForgotPasswordRequestDTO dto) {
+        try {
+            // Kiểm tra email có tồn tại trong hệ thống không
+            if (!userService.emailExists(dto.getEmail())) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Email không tồn tại trong hệ thống");
+            }
+
+            // Gửi OTP qua email
+            otpService.generateAndSendForgotPasswordOtp(dto.getEmail());
+            
+            return ResponseEntity.ok("OTP khôi phục mật khẩu đã được gửi đến email");
+        } catch (Exception e) {
+            System.err.println("Error sending forgot password OTP: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi gửi OTP: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Bước 2: Xác thực OTP và đặt lại mật khẩu mới
+     * POST /api/auth/reset-password
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody com.dao.cookbook.dto.request.ResetPasswordRequestDTO dto) {
+        try {
+            // Xác thực OTP
+            if (!otpService.verifyForgotPasswordOtp(dto.getEmail(), dto.getOtp())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("OTP không hợp lệ hoặc đã hết hạn");
+            }
+
+            // Reset mật khẩu
+            userService.resetPassword(dto.getEmail(), dto.getNewPassword());
+            
+            return ResponseEntity.ok("Đặt lại mật khẩu thành công");
+        } catch (RuntimeException e) {
+            System.err.println("Error resetting password: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error resetting password: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi đặt lại mật khẩu");
+        }
+    }
+
+    /**
+     * Đổi mật khẩu (yêu cầu đăng nhập)
+     * POST /api/auth/change-password
+     * Requires Authentication
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@Valid @RequestBody com.dao.cookbook.dto.request.ChangePasswordRequestDTO dto) {
+        try {
+            // Lấy email từ JWT token trong SecurityContext
+            Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                    .getContext()
+                    .getAuthentication();
+            
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Người dùng chưa đăng nhập");
+            }
+
+            String email = authentication.getName();
+
+            // Đổi mật khẩu (sẽ kiểm tra mật khẩu cũ trong service)
+            userService.changePassword(email, dto.getOldPassword(), dto.getNewPassword());
+            
+            return ResponseEntity.ok("Đổi mật khẩu thành công");
+        } catch (RuntimeException e) {
+            System.err.println("Error changing password: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error changing password: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi đổi mật khẩu");
+        }
+    }
 }

@@ -40,4 +40,29 @@ public class OtpService {
         }
         return false;
     }
+
+    // Tạo và gửi OTP cho quên mật khẩu
+    public void generateAndSendForgotPasswordOtp(String email) {
+        String otp = String.valueOf(new Random().nextInt(900000) + 100000); // 6 số
+        otpCache.put("forgot_" + email, otp); // Thêm prefix để phân biệt với OTP đăng ký
+
+        // Gửi email
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("OTP khôi phục mật khẩu - Cookbook");
+        message.setText("Mã OTP khôi phục mật khẩu của bạn là: " + otp + "\n\n" +
+                "Mã này có hiệu lực trong 5 phút.\n" +
+                "Nếu bạn không yêu cầu khôi phục mật khẩu, vui lòng bỏ qua email này.");
+        mailSender.send(message);
+    }
+
+    // Kiểm tra OTP cho quên mật khẩu
+    public boolean verifyForgotPasswordOtp(String email, String otp) {
+        String cached = otpCache.get("forgot_" + email);
+        if (cached != null && cached.equals(otp)) {
+            otpCache.remove("forgot_" + email); // Xóa sau khi dùng
+            return true;
+        }
+        return false;
+    }
 }
