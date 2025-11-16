@@ -1,0 +1,18 @@
+package com.dao.cookbook.dto.request;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class ResetPasswordRequestDTO {
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Email không hợp lệ")
+    private String email;
+    
+    @NotBlank(message = "OTP không được để trống")
+    private String otp;
+    
+    @NotBlank(message = "Mật khẩu mới không được để trống")
+    private String newPassword;
+}
