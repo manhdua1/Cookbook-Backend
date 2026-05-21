@@ -2,6 +2,9 @@
 
 Backend service for a cookbook and recipe sharing application. The project contains a Spring Boot REST API and a Python AI service that uses RAG to answer recipe-related questions from a local recipe dataset.
 
+# Frontend Github Repo (Flutter)
+https://github.com/ThieuQuangHuy23021580/cookbook_app
+
 ## Table of Contents
 
 - [Tech Stack](#tech-stack)
